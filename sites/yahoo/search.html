@@ -1,0 +1,42 @@
+<!-- Mock Yahoo! search results, styled after the real 1996 result page.
+     There's no real index behind this -- it always reports the same kind
+     of "not much found" result the actual young Yahoo directory gave for
+     most queries in 1996, which is itself period-accurate. -->
+<html>
+<head><title>Yahoo! Search Results</title></head>
+<body>
+<center>
+<a href="index.html"><img alt="[Yahoo!]" width="447" height="57" border="0" src="img/main2.gif"></a>
+</center>
+<p>
+<form method="GET" action="search.html">
+<input size="30" name="p" id="p"> <input type="submit" value="Search">
+<a href="index.html"><small>Options</small></a>
+</form>
+<p>
+<b>Your search:</b> <span id="query-echo">&nbsp;</span>
+<hr>
+<div id="results"></div>
+<hr>
+<p><font size="-2">Copyright &copy; 1996 Yahoo! All Rights Reserved.</font></p>
+<script>
+  const params = new URLSearchParams(location.search);
+  const q = (params.get("p") || "").trim();
+  document.getElementById("query-echo").textContent = q ? '"' + q + '"' : "(nothing entered)";
+  document.getElementById("p").value = q;
+
+  const results = document.getElementById("results");
+  if (!q) {
+    results.innerHTML = "<p>Type something in the box above and click Search.</p>";
+  } else {
+    results.innerHTML =
+      "<p>No Yahoo Category matches were found for <b>" + q.replace(/</g, "&lt;") + "</b>.</p>" +
+      "<p><b>Web Pages found by Yahoo's own robot, plus results from AltaVista:</b></p>" +
+      "<ol>" +
+      "<li><a href='soon.html'>[Site index temporarily unavailable]</a><br><small>This part of the Yahoo! web crawl hasn't been rebuilt yet.</small></li>" +
+      "</ol>" +
+      "<p>Try browsing the <a href='index.html'>directory</a> instead.</p>";
+  }
+</script>
+</body>
+</html>

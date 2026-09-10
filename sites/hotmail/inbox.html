@@ -1,0 +1,127 @@
+<!-- Fake inbox shown after "logging in". A handful of canned, period-flavored
+     messages -- nothing is real mail and nothing is sent anywhere. -->
+<html>
+<head>
+<title>Hotmail Inbox</title>
+<style>
+  body { background:#fff; font-family: Arial, Helvetica, sans-serif; color:#000; margin:0; font-size:13px; }
+  #hm-top { background:#003399; color:#fff; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; }
+  #hm-top .hm-logo { font-size:20px; font-weight:bold; font-style:italic; }
+  #hm-top a { color:#fff; font-size:12px; }
+  #hm-toolbar { background:#dfe8f6; border-bottom:1px solid #99b; padding:4px 10px; }
+  #hm-toolbar button { font-size:12px; margin-right:6px; }
+  #hm-welcome { background:#ffffcc; border-bottom:1px solid #cc9; padding:6px 10px; }
+  table#hm-list { width:100%; border-collapse:collapse; }
+  table#hm-list td { border-bottom:1px solid #ddd; padding:5px 10px; cursor:pointer; vertical-align:top; }
+  table#hm-list tr.unread td { font-weight:bold; }
+  table#hm-list tr:hover td { background:#eef3fc; }
+  #hm-msg { display:none; padding:14px; border-top:2px solid #003399; }
+  #hm-msg .hm-hdr { color:#555; font-size:12px; margin-bottom:10px; }
+  #hm-msg .hm-body { white-space:pre-wrap; }
+  #hm-msg a.back { display:inline-block; margin-top:14px; }
+</style>
+</head>
+<body>
+<div id="hm-top">
+  <span class="hm-logo">Hotmail</span>
+  <span>Signed in as <b id="hm-user-label">...</b>@hotmail.com &nbsp; | &nbsp; <a href="#" onclick="hmSignOut(); return false;">Sign Out</a></span>
+</div>
+<div id="hm-toolbar"><button disabled>Compose</button><button onclick="location.reload()">Check Mail</button></div>
+<div id="hm-welcome" style="display:none;">Welcome to Hotmail! Your free account is ready to use.</div>
+
+<table id="hm-list"></table>
+
+<div id="hm-msg">
+  <div class="hm-hdr" id="hm-msg-hdr"></div>
+  <div class="hm-body" id="hm-msg-body"></div>
+  <a href="#" class="back" onclick="hmShowList(); return false;">&laquo; Back to Inbox</a>
+</div>
+
+<script>
+  const MESSAGES = [
+    {
+      from: "welcome@hotmail.com",
+      subject: "Welcome to Hotmail!",
+      date: "Today",
+      body:
+        "Thanks for signing up for Hotmail, the world's free web-based email!\n\n" +
+        "You can now check your mail from any computer with a web browser, anywhere " +
+        "in the world -- no software to install or configure.\n\n" +
+        "-- The Hotmail Team\n\n" +
+        "P.S. Do you know someone who could use a free email account? " +
+        "Tell them to get their private, free email at http://www.hotmail.com"
+    },
+    {
+      from: "mom@example.com",
+      subject: "did you get a computer virus??",
+      date: "Yesterday",
+      body:
+        "Hi sweetie,\n\nYour cousin says there's a virus going around by email that erases your " +
+        "whole hard drive if you open a message called \"Good Times.\" Please be careful and " +
+        "forward this to everyone you know just in case.\n\nLove, Mom\n\n" +
+        "P.S. Get your own free email at http://www.hotmail.com"
+    },
+    {
+      from: "webmaster@geocities.com",
+      subject: "Your free homepage is ready!",
+      date: "3 days ago",
+      body:
+        "Congratulations! Your new GeoCities homepage has been created.\n\n" +
+        "Don't forget to add a visitor counter, a guestbook, and turn on the " +
+        "'Under Construction' animated GIF while you work on it.\n\n" +
+        "Happy publishing!"
+    },
+    {
+      from: "friend@aol.com",
+      subject: "check this out!!!",
+      date: "1 week ago",
+      body:
+        "you have GOT to see this new site, spacejam.com, its like nothing ive ever seen " +
+        "before its literally a whole website for the movie!! the internet is insane now\n\n" +
+        "write back soon\n\n-- sent from AOL 3.0"
+    }
+  ];
+
+  function hmInit() {
+    let user;
+    try { user = sessionStorage.getItem("win95_hotmail_user"); } catch (e) { user = null; }
+    if (!user) { location.href = "index.html"; return; }
+    document.getElementById("hm-user-label").textContent = user;
+
+    if (new URLSearchParams(location.search).get("welcome") === "1") {
+      document.getElementById("hm-welcome").style.display = "block";
+    }
+
+    const list = document.getElementById("hm-list");
+    MESSAGES.forEach(function (m, i) {
+      const row = document.createElement("tr");
+      row.className = "unread";
+      row.onclick = function () { hmOpen(i); };
+      row.innerHTML = "<td width='180'>" + m.from + "</td><td>" + m.subject + "</td><td width='80' align='right'>" + m.date + "</td>";
+      list.appendChild(row);
+    });
+  }
+
+  function hmOpen(i) {
+    const m = MESSAGES[i];
+    document.getElementById("hm-msg-hdr").innerHTML =
+      "<b>From:</b> " + m.from + "<br><b>Subject:</b> " + m.subject + "<br><b>Date:</b> " + m.date;
+    document.getElementById("hm-msg-body").textContent = m.body;
+    document.getElementById("hm-list").style.display = "none";
+    document.getElementById("hm-msg").style.display = "block";
+  }
+
+  function hmShowList() {
+    document.getElementById("hm-msg").style.display = "none";
+    document.getElementById("hm-list").style.display = "";
+  }
+
+  function hmSignOut() {
+    try { sessionStorage.removeItem("win95_hotmail_user"); } catch (e) {}
+    location.href = "index.html";
+  }
+
+  hmInit();
+</script>
+</body>
+</html>

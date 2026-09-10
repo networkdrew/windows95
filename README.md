@@ -10,7 +10,7 @@ A single-file, no-build nostalgia trip: a Windows 95 desktop rebuilt in plain HT
 - **Command Prompt** — a handful of fake DOS commands (`dir`, `cls`, `echo`, `time`, `help`)
 - **Control Panel** — clickable applets (Display, Sound, Network, System, Users, Date/Time) that show simple info dialogs
 - **Recycle Bin** — deleting a file/folder in My Computer moves it here; restore it or empty the bin permanently
-- **Internet Explorer** — a fake address bar; anything you "visit" returns a retro "cannot display the webpage" error
+- **Internet Explorer** ("The Internet") — a working address bar with real recreated period websites. Try `www.yahoo.com`, `www.spacejam.com`, or `www.hotmail.com` (or use the Links quick-bar). Anything else returns a retro "cannot display the webpage" error. See `sites/README.md` for how these are built and what's stubbed vs. real.
 - **Solitaire** — a simplified single-card-move Klondike (click a card to select it, click a pile to move it there)
 
 ## Local dev

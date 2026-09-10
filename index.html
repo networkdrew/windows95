@@ -3,200 +3,349 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultimate Windows 95 Simulation – Enhanced Apps</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%96%A5%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <title>Windows 95</title>
+  <!--
+    Font: "MS Sans Serif" webfont — an independent bitmap-style recreation
+    (FontStruction by "lou", CC BY-SA 3.0), converted to woff/woff2 by the
+    98.css project (MIT). See /fonts/LICENSE.txt for full attribution.
+    This is not Microsoft's original font file.
+  -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='2,4 15,2 15,14 2,16' fill='%23FF3300'/%3E%3Cpolygon points='17,2 30,4 30,16 17,14' fill='%2333CC33'/%3E%3Cpolygon points='2,18 15,16 15,28 2,30' fill='%230066FF'/%3E%3Cpolygon points='17,16 30,18 30,30 17,28' fill='%23FFCC00'/%3E%3C/svg%3E">
   <style>
+    /* ================= Fonts ================= */
+    @font-face {
+      font-family: "MS Sans Serif";
+      src: url("fonts/ms_sans_serif.woff2") format("woff2"),
+           url("fonts/ms_sans_serif.woff") format("woff");
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "MS Sans Serif";
+      src: url("fonts/ms_sans_serif_bold.woff2") format("woff2"),
+           url("fonts/ms_sans_serif_bold.woff") format("woff");
+      font-weight: bold;
+      font-style: normal;
+    }
+
+    /* ================= Design tokens (Windows 95 "Windows Standard" palette) ================= */
+    :root {
+      --face: #c0c0c0;
+      --face-light: #dfdfdf;
+      --hi: #ffffff;
+      --shadow: #808080;
+      --dark: #000000;
+      --desktop: #008080;
+      --title-active-l: #000080;
+      --title-active-r: #1084d0;
+      --title-inactive: #808080;
+      --title-text: #ffffff;
+      --title-inactive-text: #c0c0c0;
+      --select-bg: #000080;
+      --select-text: #ffffff;
+
+      /* raised / sunken bevels built from the four greys above */
+      --bevel-out-2: inset 1px 1px 0 var(--hi), inset -1px -1px 0 var(--dark),
+                      inset 2px 2px 0 var(--face-light), inset -2px -2px 0 var(--shadow);
+      --bevel-in-2:  inset 1px 1px 0 var(--dark), inset -1px -1px 0 var(--hi),
+                      inset 2px 2px 0 var(--shadow), inset -2px -2px 0 var(--face-light);
+      --bevel-out-1: inset 1px 1px 0 var(--hi), inset -1px -1px 0 var(--dark);
+      --bevel-in-1:  inset 1px 1px 0 var(--dark), inset -1px -1px 0 var(--hi);
+    }
+
     /* --- Base & Reset --- */
+    * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
       overflow: hidden;
       font-family: "MS Sans Serif", Tahoma, sans-serif;
+      font-size: 11px;
+      color: #000;
       user-select: none;
       background: #000;
+      -webkit-font-smoothing: none;
     }
+    button, input, textarea, select {
+      font-family: inherit;
+      font-size: 11px;
+    }
+    button {
+      background: var(--face);
+      box-shadow: var(--bevel-out-1);
+      border: none;
+      padding: 3px 10px;
+      cursor: pointer;
+    }
+    button:active { box-shadow: var(--bevel-in-1); }
+    button:focus { outline: 1px dotted #000; outline-offset: -4px; }
+    input[type="text"], textarea, select {
+      background: #fff;
+      box-shadow: var(--bevel-in-2);
+      border: none;
+      padding: 2px 3px;
+    }
+
     /* --- Loading Screen --- */
     #loading-screen {
       position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
-      background: #000; color: #0f0;
+      background: #000; color: #fff;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       z-index: 3000;
+      font-family: "MS Sans Serif", Tahoma, sans-serif;
     }
-    #loading-text { font-size: 18px; margin-bottom: 20px; }
+    #loading-flag { width: 64px; height: 64px; margin-bottom: 18px; }
+    #loading-text { font-size: 16px; margin-bottom: 18px; letter-spacing: .5px; }
     #progress-container {
-      width: 300px; height: 20px;
-      border: 2px inset #0f0; background: #000;
+      width: 220px; height: 14px;
+      box-shadow: var(--bevel-in-1);
+      background: #000;
+      padding: 2px;
     }
     #progress-bar {
       height: 100%; width: 0%;
-      background: #0f0; transition: width 0.2s;
+      background: repeating-linear-gradient(90deg, #0000ff 0 5px, #000 5px 7px);
     }
+
     /* --- Desktop --- */
     #desktop {
       position: relative; width: 100%; height: 100%;
-      background: linear-gradient(to bottom, #0080c0, #004080);
+      background: var(--desktop);
       display: none;
     }
     /* --- Desktop Icons --- */
     #desktop-icons {
       position: absolute; top: 10px; left: 10px;
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex; flex-direction: column; gap: 4px;
+      width: 76px;
     }
     .desktop-icon {
-      width: 48px; text-align: center;
-      color: #fff; font-size: 12px; cursor: default;
+      width: 72px; text-align: center;
+      color: #fff; font-size: 11px; cursor: default;
+      padding: 3px 2px 4px;
+      border: 1px dotted transparent;
     }
     .desktop-icon .icon { width: 32px; height: 32px; margin: 0 auto; }
-    .desktop-icon .icon-label { margin-top: 2px; }
+    .desktop-icon .icon svg { display: block; width: 100%; height: 100%; }
+    .desktop-icon .icon-label {
+      margin-top: 2px;
+      line-height: 1.3;
+      word-wrap: break-word;
+    }
+
     /* --- Window (Draggable Applications) --- */
     .window {
       position: absolute; width: 320px; height: 240px;
-      background: #c0c0c0; border: 2px solid #fff;
-      box-shadow: 2px 2px 0 #808080;
-      overflow: hidden;
-      transition: top 0.2s, left 0.2s, width 0.2s, height 0.2s;
+      background: var(--face);
+      box-shadow: var(--bevel-out-2);
+      padding: 2px;
+      display: flex;
+      flex-direction: column;
     }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
     .window-titlebar {
-      background: linear-gradient(to right, #000080, #0000a0);
-      color: #fff; padding: 2px 4px; font-size: 12px;
+      background: var(--title-active-l);
+      color: var(--title-text);
+      padding: 3px 3px 3px 4px; font-size: 11px; font-weight: bold;
       display: flex; justify-content: space-between;
       align-items: center; cursor: move;
+      flex-shrink: 0;
     }
-    .window-controls span {
-      margin-left: 5px; padding: 0 4px;
-      background: #c0c0c0; border: 1px solid #fff;
-      transition: background 0.1s;
+    .window:not(.active) .window-titlebar {
+      background: var(--title-inactive);
+      color: var(--title-inactive-text);
     }
-    .window-controls span:hover { background: #808080; color: #fff; }
+    .window-title { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .window-title-icon { width: 14px; height: 14px; flex-shrink: 0; }
+    .window-title-icon svg { width: 100%; height: 100%; }
+    .window-controls { display: flex; gap: 2px; flex-shrink: 0; }
+    .win-caption-btn {
+      width: 16px; height: 14px; padding: 0;
+      background: var(--face);
+      box-shadow: var(--bevel-out-1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .win-caption-btn:active { box-shadow: var(--bevel-in-1); }
+    .win-caption-btn svg { width: 9px; height: 9px; }
     .window-content {
-      padding: 4px; font-size: 12px;
-      overflow: auto; background: #fff;
-      height: calc(100% - 20px);
+      padding: 6px; font-size: 11px;
+      overflow: auto; background: var(--face);
+      flex: 1 1 auto;
+      min-height: 0;
     }
+    .window-content.doc { background: #fff; padding: 4px; }
+
     /* --- Taskbar --- */
     #taskbar {
-      background: linear-gradient(to right, #000080, #0000a0);
-      color: #fff; height: 40px;
+      background: var(--face);
+      border-top: 1px solid var(--hi);
+      box-shadow: 0 -1px 0 var(--shadow) inset;
+      height: 28px;
       display: flex; align-items: center;
-      padding: 0 4px; position: fixed;
+      gap: 4px;
+      padding: 2px 3px; position: fixed;
       bottom: 0; left: 0; right: 0; z-index: 2000;
     }
     #start-btn {
-      background: #c0c0c0; border: 2px outset #fff;
-      font-size: 12px; padding: 2px 8px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      background: var(--face); box-shadow: var(--bevel-out-1);
+      font-size: 11px; font-weight: bold; padding: 2px 8px 2px 3px;
+      height: 22px;
+    }
+    #start-btn:active, #start-btn.pressed { box-shadow: var(--bevel-in-1); }
+    #start-btn .icon { width: 16px; height: 16px; }
+    #start-btn .icon svg { width: 100%; height: 100%; }
+    #taskbar-sep {
+      width: 1px; align-self: stretch; margin: 2px 1px;
+      box-shadow: inset 1px 0 0 var(--shadow), inset -1px 0 0 var(--hi);
     }
     #taskbar-buttons {
-      margin-left: 10px; display: flex; gap: 2px; flex-grow: 1;
+      display: flex; gap: 3px; flex-grow: 1; overflow: hidden; height: 22px;
     }
     .taskbar-btn {
-      background: #c0c0c0; border: 2px outset #fff;
-      font-size: 12px; cursor: pointer; padding: 2px 8px;
+      background: var(--face); box-shadow: var(--bevel-out-1);
+      font-size: 11px; cursor: pointer; padding: 2px 8px;
+      display: flex; align-items: center; gap: 4px;
+      min-width: 120px; max-width: 160px; height: 22px;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
     }
-    #clock { min-width: 80px; text-align: right; font-size: 12px; }
+    .taskbar-btn .icon { width: 14px; height: 14px; flex-shrink: 0; }
+    .taskbar-btn .icon svg { width: 100%; height: 100%; }
+    .taskbar-btn.pressed { box-shadow: var(--bevel-in-1); }
+    #clock {
+      min-width: 64px; text-align: center; font-size: 11px;
+      box-shadow: var(--bevel-in-1);
+      padding: 3px 8px; height: 22px; display: flex; align-items: center; justify-content: center;
+    }
+
     /* --- Start Menu --- */
     #start-menu {
-      position: fixed; bottom: 40px; left: 0; width: 220px;
-      background: #c0c0c0; border: 2px outset #fff;
-      box-shadow: 2px 2px 0 #808080; z-index: 2500;
+      position: fixed; bottom: 28px; left: 2px; width: 210px;
+      background: var(--face);
+      box-shadow: var(--bevel-out-2);
+      z-index: 2500;
+      display: flex;
+      padding: 2px;
     }
     #start-menu.hidden { display: none; }
-    #start-menu-header {
-      display: flex; align-items: center; padding: 4px;
-      background: #000080; color: #fff; font-size: 12px;
+    #start-banner {
+      width: 22px; flex-shrink: 0;
+      background: linear-gradient(160deg, #000080 0%, #1084d0 100%);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 8px 0;
+      margin-right: 3px;
     }
-    #windows-logo { margin-right: 4px; }
+    #start-banner .banner-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      color: #fff; font-weight: bold; font-size: 15px;
+      font-style: italic; letter-spacing: 1px;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    #start-banner .banner-flag { width: 20px; height: 20px; margin-top: 8px; }
+    #start-banner .banner-flag svg { width: 100%; height: 100%; }
+    #start-menu-items { flex: 1; min-width: 0; padding: 1px 0; }
     .menu-item {
-      padding: 4px 8px; cursor: pointer;
-      font-size: 12px; position: relative;
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 6px; cursor: pointer;
+      font-size: 11px; position: relative;
+      white-space: nowrap;
     }
-    .menu-item:hover { background: #000080; color: #fff; }
-    .menu-separator { border-top: 1px solid #000; margin: 4px 0; }
+    .menu-item:hover, .menu-item.hover { background: var(--select-bg); color: var(--select-text); }
+    .menu-item .menu-icon { width: 16px; height: 16px; flex-shrink: 0; }
+    .menu-item .menu-icon svg { width: 100%; height: 100%; }
+    .menu-item .menu-label { flex: 1; }
+    .menu-item .menu-arrow { font-size: 9px; margin-left: 4px; }
+    .menu-separator { border-top: 1px solid var(--shadow); border-bottom: 1px solid var(--hi); margin: 3px 2px; }
     .submenu {
-      position: absolute; top: 0; left: 100%;
-      background: #c0c0c0; border: 2px outset #fff;
-      min-width: 150px; z-index: 3000;
+      position: absolute; top: -2px; left: 100%;
+      background: var(--face); box-shadow: var(--bevel-out-2);
+      min-width: 170px; z-index: 3000; padding: 2px;
     }
     .submenu.hidden { display: none; }
     .submenu-trigger { position: relative; }
+
     /* --- Run Dialog --- */
     #run-dialog {
       position: fixed; width: 300px;
-      border: 2px outset #fff; background: #c0c0c0;
-      z-index: 3500; padding: 10px;
+      box-shadow: var(--bevel-out-2); background: var(--face);
+      z-index: 3500; padding: 0;
       left: 50%; top: 50%;
       transform: translate(-50%, -50%);
-      font-size: 12px;
+      font-size: 11px;
     }
     #run-dialog.hidden { display: none; }
+    #run-dialog .dlg-titlebar {
+      background: var(--title-active-l); color: #fff; font-weight: bold;
+      padding: 3px 4px; display: flex; justify-content: space-between; align-items: center;
+    }
+    #run-dialog .dlg-body { padding: 12px; display: flex; gap: 10px; }
+    #run-dialog .dlg-icon { width: 32px; height: 32px; flex-shrink: 0; }
+    #run-dialog .dlg-icon svg { width: 100%; height: 100%; }
+    #run-dialog .dlg-actions { text-align: right; margin-top: 12px; }
+    #run-dialog .dlg-actions button { margin-left: 6px; min-width: 70px; }
+
+    /* --- Desktop context menu --- */
+    #context-menu {
+      position: fixed; background: var(--face);
+      box-shadow: var(--bevel-out-2); padding: 2px; z-index: 4000; min-width: 140px;
+    }
+    #context-menu.hidden { display: none; }
+    .context-menu-item { padding: 4px 10px; font-size: 11px; cursor: pointer; }
+    .context-menu-item:hover { background: var(--select-bg); color: var(--select-text); }
+
     /* --- File Explorer Styles (My Computer) --- */
-    #file-explorer-container {
-      width: 100%; height: 100%;
-      box-sizing: border-box; padding: 5px; overflow: auto;
-    }
-    #file-explorer-toolbar {
-      margin-bottom: 5px;
-    }
-    #file-explorer-toolbar button {
-      font-size: 12px; margin-right: 5px; padding: 2px 4px;
-    }
-    #breadcrumb { margin-bottom: 5px; font-weight: bold; font-size: 12px; }
-    #file-list {
-      list-style: none; padding: 0; margin: 0; font-size: 12px;
-    }
-    #file-list li {
-      padding: 3px 5px; cursor: pointer;
-      display: flex; align-items: center;
-    }
-    #file-list li:hover { background: #ddd; }
-    #file-list li.selected-item { background: #aaa; }
-    .file-icon { width: 16px; height: 16px; margin-right: 5px; }
+    #file-explorer-container { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    #file-explorer-toolbar { margin-bottom: 5px; flex-shrink: 0; }
+    #file-explorer-toolbar button { margin-right: 4px; }
+    #breadcrumb { margin-bottom: 5px; font-weight: bold; flex-shrink: 0; }
+    #file-list-wrap { flex: 1; background: #fff; box-shadow: var(--bevel-in-2); overflow: auto; }
+    #file-list { list-style: none; padding: 2px; margin: 0; }
+    #file-list li { padding: 2px 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    #file-list li:hover { background: #dcdcdc; }
+    #file-list li.selected-item { background: var(--select-bg); color: var(--select-text); }
+    .file-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
     /* --- Paint Application Styles --- */
-    #paint-toolbar {
-      margin-bottom: 5px;
-    }
-    #paint-toolbar button, #paint-toolbar input {
-      font-size: 12px;
-      margin-right: 5px;
-      padding: 2px 4px;
-    }
+    #paint-toolbar { margin-bottom: 5px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    #paint-toolbar label { display: flex; align-items: center; gap: 4px; }
+
     /* --- Control Panel Styles --- */
     #control-panel-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      padding: 10px;
-      font-size: 12px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 4px; padding: 4px;
     }
     .cp-item {
-      text-align: center;
-      cursor: pointer;
-      border: 1px solid #000;
-      padding: 5px;
-      background: #fff;
+      text-align: center; cursor: pointer;
+      padding: 8px 4px; background: var(--face);
     }
-    .cp-item svg { width: 32px; height: 32px; }
-    /* Modal for Control Panel Details */
+    .cp-item:hover { background: #d5d5d5; }
+    .cp-item .icon { width: 32px; height: 32px; margin: 0 auto 4px; }
+    .cp-item .icon svg { width: 100%; height: 100%; }
+
+    /* --- Generic dialog-style modal (Control Panel details) --- */
     #cp-modal {
       position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 300px; background: #c0c0c0;
-      border: 2px outset #fff; z-index: 3600;
-      padding: 10px; font-size: 12px;
-      display: none;
+      width: 300px; background: var(--face);
+      box-shadow: var(--bevel-out-2); z-index: 3600;
+      padding: 0; display: none;
     }
-    #cp-modal-close {
-      float: right; cursor: pointer;
-      background: #c0c0c0; border: 1px solid #fff;
-      padding: 2px 4px;
+    #cp-modal .dlg-titlebar {
+      background: var(--title-active-l); color: #fff; font-weight: bold;
+      padding: 3px 4px; display: flex; justify-content: space-between; align-items: center;
     }
+    #cp-modal-close { cursor: pointer; background: var(--face); box-shadow: var(--bevel-out-1); width: 16px; height: 14px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    #cp-modal-close:active { box-shadow: var(--bevel-in-1); }
+    #cp-modal-content { padding: 14px; white-space: pre-line; }
   </style>
 </head>
 <body>
   <!-- Loading Screen -->
   <div id="loading-screen">
+    <div id="loading-flag" data-icon="windowsFlag"></div>
     <div id="loading-text">Starting Windows 95...</div>
     <div id="progress-container">
       <div id="progress-bar"></div>
@@ -208,39 +357,39 @@
     <!-- Desktop Icons -->
     <div id="desktop-icons">
       <div class="desktop-icon" ondblclick="openWindow('myComputer')">
-        <div class="icon"><!-- My Computer Icon injected below --></div>
+        <div class="icon" data-icon="myComputer"></div>
         <div class="icon-label">My Computer</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('notepad')">
-        <div class="icon"><!-- Notepad Icon injected below --></div>
+        <div class="icon" data-icon="notepad"></div>
         <div class="icon-label">Notepad</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('calculator')">
-        <div class="icon"><!-- Calculator Icon injected below --></div>
+        <div class="icon" data-icon="calculator"></div>
         <div class="icon-label">Calculator</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('paint')">
-        <div class="icon"><!-- Paint Icon injected below --></div>
+        <div class="icon" data-icon="paint"></div>
         <div class="icon-label">Paint</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('commandPrompt')">
-        <div class="icon"><!-- Command Prompt Icon injected below --></div>
-        <div class="icon-label">Command Prompt</div>
+        <div class="icon" data-icon="commandPrompt"></div>
+        <div class="icon-label">MS-DOS Prompt</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('controlPanel')">
-        <div class="icon"><!-- Control Panel Icon injected below --></div>
+        <div class="icon" data-icon="controlPanel"></div>
         <div class="icon-label">Control Panel</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('recycleBin')">
-        <div class="icon"><!-- Recycle Bin Icon injected below --></div>
+        <div class="icon" data-icon="recycleBin"></div>
         <div class="icon-label">Recycle Bin</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('internetExplorer')">
-        <div class="icon"><!-- Internet Explorer Icon injected below --></div>
-        <div class="icon-label">Internet Explorer</div>
+        <div class="icon" data-icon="internetExplorer"></div>
+        <div class="icon-label">The Internet</div>
       </div>
       <div class="desktop-icon" ondblclick="openWindow('solitaire')">
-        <div class="icon"><!-- Solitaire Icon injected below --></div>
+        <div class="icon" data-icon="solitaire"></div>
         <div class="icon-label">Solitaire</div>
       </div>
     </div>
@@ -248,11 +397,11 @@
     <!-- My Computer Window – File Explorer -->
     <div class="window" id="myComputer" style="top: 50px; left: 50px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>My Computer</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="myComputer"></span><span class="window-title-text">My Computer</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('myComputer'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('myComputer'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('myComputer'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('myComputer'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-myComputer" onclick="maximizeWindow('myComputer'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('myComputer'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
       <div class="window-content">
@@ -263,51 +412,52 @@
     <!-- Notepad Window – Opens text files -->
     <div class="window hidden" id="notepad" style="top: 100px; left: 150px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Notepad</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="notepad"></span><span class="window-title-text">Notepad</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('notepad'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('notepad'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('notepad'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('notepad'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-notepad" onclick="maximizeWindow('notepad'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('notepad'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content">
-        <textarea id="notepad-text" style="width:100%; height:100%; resize:none; border:none; outline:none;" placeholder="Type your text here..."></textarea>
+      <div class="window-content doc" style="padding:0;">
+        <textarea id="notepad-text" style="width:100%; height:100%; resize:none; border:none; outline:none; box-shadow:none; padding:4px;" placeholder="Type your text here..."></textarea>
       </div>
     </div>
 
     <!-- Paint Window – Enhanced with toolbar -->
     <div class="window hidden" id="paint" style="top: 150px; left: 250px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Paint</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="paint"></span><span class="window-title-text">untitled - Paint</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('paint'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('paint'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('paint'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('paint'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-paint" onclick="maximizeWindow('paint'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('paint'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content" style="padding: 5px;">
+      <div class="window-content">
         <div id="paint-toolbar">
           <button onclick="clearCanvas()">Clear</button>
           <label>Color: <input type="color" id="paint-color" value="#000000"></label>
           <label>Size: <input type="range" id="paint-size" min="1" max="10" value="2"></label>
         </div>
-        <canvas id="paint-canvas" width="300" height="200" style="border:1px solid #000;"></canvas>
+        <canvas id="paint-canvas" width="300" height="180" style="box-shadow:var(--bevel-in-2); background:#fff;"></canvas>
       </div>
     </div>
 
     <!-- Command Prompt Window – Enhanced with additional commands -->
     <div class="window hidden" id="commandPrompt" style="top: 80px; left: 300px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Command Prompt</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="commandPrompt"></span><span class="window-title-text">MS-DOS Prompt</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('commandPrompt'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('commandPrompt'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('commandPrompt'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('commandPrompt'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-commandPrompt" onclick="maximizeWindow('commandPrompt'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('commandPrompt'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content" style="display: flex; flex-direction: column; height: 100%;">
-        <div id="cmd-output" style="background:#000; color:#0f0; font-family:monospace; padding:4px; height:80%; overflow-y:auto; white-space:pre-wrap;">Microsoft Windows [Version 4.00.950]</div>
-        <input id="cmd-input" type="text" placeholder="C:\>" style="width:100%; border:none; outline:none; font-family:monospace; font-size:12px; padding:4px;"
+      <div class="window-content" style="display: flex; flex-direction: column; height: 100%; background:#000; padding:2px;">
+        <div id="cmd-output" style="background:#000; color:#c0c0c0; font-family:'Courier New',monospace; padding:4px; flex:1; overflow-y:auto; white-space:pre-wrap;">Microsoft Windows 95
+(C)Copyright Microsoft Corp 1981-1996.</div>
+        <input id="cmd-input" type="text" placeholder="C:\>" style="width:100%; background:#000; color:#c0c0c0; box-shadow:none; border:none; outline:none; font-family:'Courier New',monospace; font-size:11px; padding:4px;"
           onkeydown="if(event.key==='Enter'){ processCommand(this.value); this.value=''; }">
       </div>
     </div>
@@ -315,37 +465,37 @@
     <!-- Control Panel Window – Enhanced with clickable items -->
     <div class="window hidden" id="controlPanel" style="top: 120px; left: 350px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Control Panel</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="controlPanel"></span><span class="window-title-text">Control Panel</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('controlPanel'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('controlPanel'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('controlPanel'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('controlPanel'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-controlPanel" onclick="maximizeWindow('controlPanel'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('controlPanel'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content">
+      <div class="window-content doc">
         <div id="control-panel-grid">
           <div class="cp-item" onclick="openControlPanelDetail('Display')">
-            <svg viewBox="0 0 32 32"><rect x="6" y="8" width="20" height="16" fill="#fff" stroke="#000" stroke-width="1"/></svg>
+            <div class="icon" data-icon="display"></div>
             <div>Display</div>
           </div>
           <div class="cp-item" onclick="openControlPanelDetail('Sound')">
-            <svg viewBox="0 0 32 32"><polygon points="8,12 16,4 16,28 8,20" fill="#fff" stroke="#000" stroke-width="1"/><circle cx="20" cy="16" r="4" fill="#fff" stroke="#000" stroke-width="1"/></svg>
+            <div class="icon" data-icon="sound"></div>
             <div>Sound</div>
           </div>
           <div class="cp-item" onclick="openControlPanelDetail('Network')">
-            <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#fff" stroke="#000" stroke-width="1"/><line x1="16" y1="6" x2="16" y2="26" stroke="#000" stroke-width="1"/></svg>
+            <div class="icon" data-icon="network"></div>
             <div>Network</div>
           </div>
           <div class="cp-item" onclick="openControlPanelDetail('System')">
-            <svg viewBox="0 0 32 32"><rect x="8" y="8" width="16" height="16" fill="#fff" stroke="#000" stroke-width="1"/></svg>
+            <div class="icon" data-icon="system"></div>
             <div>System</div>
           </div>
           <div class="cp-item" onclick="openControlPanelDetail('Users')">
-            <svg viewBox="0 0 32 32"><circle cx="16" cy="12" r="4" fill="#fff" stroke="#000" stroke-width="1"/><rect x="12" y="18" width="8" height="8" fill="#fff" stroke="#000" stroke-width="1"/></svg>
-            <div>Users</div>
+            <div class="icon" data-icon="users"></div>
+            <div>Passwords</div>
           </div>
           <div class="cp-item" onclick="openControlPanelDetail('Date/Time')">
-            <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#fff" stroke="#000" stroke-width="1"/><line x1="16" y1="16" x2="16" y2="10" stroke="#000" stroke-width="1"/><line x1="16" y1="16" x2="22" y2="16" stroke="#000" stroke-width="1"/></svg>
+            <div class="icon" data-icon="datetime"></div>
             <div>Date/Time</div>
           </div>
         </div>
@@ -353,20 +503,20 @@
     </div>
 
     <!-- Calculator Window -->
-    <div class="window hidden" id="calculator" style="top: 90px; left: 400px; width: 210px; height: 260px;">
+    <div class="window hidden" id="calculator" style="top: 90px; left: 400px; width: 190px; height: 250px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Calculator</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="calculator"></span><span class="window-title-text">Calculator</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('calculator'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('calculator'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('calculator'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('calculator'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-calculator" onclick="maximizeWindow('calculator'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('calculator'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content" style="padding: 6px; background: #c0c0c0;">
-        <div id="calc-display" style="background:#fff; border:1px inset #808080; text-align:right; padding:4px 6px; font-family:monospace; font-size:16px; margin-bottom:6px; min-height:20px; overflow:hidden;">0</div>
+      <div class="window-content" style="padding: 6px;">
+        <div id="calc-display" style="background:#fff; box-shadow:var(--bevel-in-2); text-align:right; padding:4px 6px; font-family:'Courier New',monospace; font-size:16px; margin-bottom:6px; min-height:20px; overflow:hidden;">0</div>
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:3px;">
           <button onclick="clearCalc()">C</button>
-          <button onclick="calcInput('/')">/</button>
+          <button onclick="calcInput('/')">&divide;</button>
           <button onclick="calcInput('*')">&times;</button>
           <button onclick="calcInput('-')">-</button>
           <button onclick="calcInput('7')">7</button>
@@ -389,14 +539,14 @@
     <!-- Recycle Bin Window -->
     <div class="window hidden" id="recycleBin" style="top: 60px; left: 420px; width: 280px; height: 220px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Recycle Bin</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="recycleBin"></span><span class="window-title-text">Recycle Bin</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('recycleBin'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('recycleBin'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('recycleBin'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('recycleBin'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-recycleBin" onclick="maximizeWindow('recycleBin'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('recycleBin'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content">
+      <div class="window-content doc">
         <div id="recycle-bin-container"></div>
       </div>
     </div>
@@ -404,20 +554,20 @@
     <!-- Internet Explorer Window -->
     <div class="window hidden" id="internetExplorer" style="top: 70px; left: 380px; width: 380px; height: 260px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Internet Explorer</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="internetExplorer"></span><span class="window-title-text">The Internet</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('internetExplorer'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('internetExplorer'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('internetExplorer'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('internetExplorer'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-internetExplorer" onclick="maximizeWindow('internetExplorer'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('internetExplorer'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
       <div class="window-content" style="padding: 0; display: flex; flex-direction: column;">
-        <div style="display:flex; gap:4px; padding:4px; background:#c0c0c0; border-bottom:1px solid #808080;">
-          <input id="ie-address" type="text" value="about:home" style="flex:1; font-size:12px;"
+        <div style="display:flex; gap:4px; padding:4px; background:var(--face); box-shadow: 0 1px 0 var(--shadow), 0 2px 0 var(--hi);">
+          <input id="ie-address" type="text" value="about:home" style="flex:1;"
             onkeydown="if(event.key==='Enter'){ ieNavigate(); }">
           <button onclick="ieNavigate()">Go</button>
         </div>
-        <div id="ie-page" style="background:#fff; flex:1; overflow:auto; padding:10px; font-size:12px;">
+        <div id="ie-page" style="background:#fff; flex:1; overflow:auto; padding:10px;">
           <h3 style="margin-top:0;">Welcome to the Web!</h3>
           <p>Type an address above and click Go.</p>
         </div>
@@ -427,73 +577,89 @@
     <!-- Solitaire Window -->
     <div class="window hidden" id="solitaire" style="top: 40px; left: 100px; width: 480px; height: 360px;">
       <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
-        <span>Solitaire</span>
+        <span class="window-title"><span class="window-title-icon" data-icon="solitaire"></span><span class="window-title-text">Solitaire</span></span>
         <div class="window-controls">
-          <span onclick="minimizeWindow('solitaire'); event.stopPropagation();">_</span>
-          <span onclick="maximizeWindow('solitaire'); event.stopPropagation();">[ ]</span>
-          <span onclick="closeWindow('solitaire'); event.stopPropagation();">X</span>
+          <button type="button" class="win-caption-btn" onclick="minimizeWindow('solitaire'); event.stopPropagation();" data-glyph="minimize"></button>
+          <button type="button" class="win-caption-btn" id="maxbtn-solitaire" onclick="maximizeWindow('solitaire'); event.stopPropagation();" data-glyph="maximize"></button>
+          <button type="button" class="win-caption-btn" onclick="closeWindow('solitaire'); event.stopPropagation();" data-glyph="close"></button>
         </div>
       </div>
-      <div class="window-content" style="background: #076324;">
+      <div class="window-content" style="background: #076324; padding: 4px;">
         <div id="solitaire-container"></div>
       </div>
     </div>
 
     <!-- Desktop Right-Click Context Menu -->
     <div id="context-menu" class="hidden">
-      <div class="context-menu-item" onclick="alert('View options not implemented'); hideContextMenu();">View</div>
+      <div class="context-menu-item" onclick="alert('View options not implemented'); hideContextMenu();">Arrange Icons</div>
       <div class="context-menu-item" onclick="alert('Refreshing...'); hideContextMenu();">Refresh</div>
-      <div class="context-menu-item" onclick="alert('Personalize is not available'); hideContextMenu();">Personalize</div>
+      <div class="menu-separator"></div>
+      <div class="context-menu-item" onclick="alert('Personalize is not available'); hideContextMenu();">Properties</div>
     </div>
   </div>
 
   <!-- Taskbar -->
   <div id="taskbar">
-    <button id="start-btn" onclick="toggleStartMenu()">Start</button>
+    <button id="start-btn" type="button" onclick="toggleStartMenu()">
+      <span class="icon" data-icon="windowsFlag"></span>
+      <span>Start</span>
+    </button>
+    <div id="taskbar-sep"></div>
     <div id="taskbar-buttons"></div>
     <div id="clock"></div>
   </div>
 
   <!-- Start Menu -->
   <div id="start-menu" class="hidden">
-    <div id="start-menu-header">
-      <div id="windows-logo">
-        <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="0" width="7" height="7" fill="#f00"/>
-          <rect x="9" y="0" width="7" height="7" fill="#0f0"/>
-          <rect x="0" y="9" width="7" height="7" fill="#00f"/>
-          <rect x="9" y="9" width="7" height="7" fill="#ff0"/>
-        </svg>
-      </div>
-      <div id="start-menu-title">Programs</div>
+    <div id="start-banner">
+      <div class="banner-text">Windows 95</div>
+      <div class="banner-flag" data-icon="windowsFlag"></div>
     </div>
-    <div class="menu-item submenu-trigger">Programs &raquo;
-      <div class="submenu hidden">
-        <div class="menu-item" onclick="openWindow('myComputer')">My Computer</div>
-        <div class="menu-item" onclick="openWindow('notepad')">Notepad</div>
-        <div class="menu-item" onclick="openWindow('calculator')">Calculator</div>
-        <div class="menu-item" onclick="openWindow('paint')">Paint</div>
-        <div class="menu-item" onclick="openWindow('commandPrompt')">Command Prompt</div>
-        <div class="menu-item" onclick="openWindow('controlPanel')">Control Panel</div>
-        <div class="menu-item" onclick="openWindow('recycleBin')">Recycle Bin</div>
-        <div class="menu-item" onclick="openWindow('internetExplorer')">Internet Explorer</div>
-        <div class="menu-item" onclick="openWindow('solitaire')">Solitaire</div>
+    <div id="start-menu-items">
+      <div class="menu-item submenu-trigger">
+        <span class="menu-icon" data-icon="programs"></span><span class="menu-label">Programs</span><span class="menu-arrow">&#9658;</span>
+        <div class="submenu hidden">
+          <div class="menu-item" onclick="openWindow('myComputer')"><span class="menu-icon" data-icon="myComputer"></span><span class="menu-label">My Computer</span></div>
+          <div class="menu-item" onclick="openWindow('notepad')"><span class="menu-icon" data-icon="notepad"></span><span class="menu-label">Notepad</span></div>
+          <div class="menu-item" onclick="openWindow('calculator')"><span class="menu-icon" data-icon="calculator"></span><span class="menu-label">Calculator</span></div>
+          <div class="menu-item" onclick="openWindow('paint')"><span class="menu-icon" data-icon="paint"></span><span class="menu-label">Paint</span></div>
+          <div class="menu-item" onclick="openWindow('commandPrompt')"><span class="menu-icon" data-icon="commandPrompt"></span><span class="menu-label">MS-DOS Prompt</span></div>
+          <div class="menu-item" onclick="openWindow('internetExplorer')"><span class="menu-icon" data-icon="internetExplorer"></span><span class="menu-label">The Internet</span></div>
+          <div class="menu-item" onclick="openWindow('solitaire')"><span class="menu-icon" data-icon="solitaire"></span><span class="menu-label">Solitaire</span></div>
+        </div>
       </div>
+      <div class="menu-item" onclick="documentsDialog()"><span class="menu-icon" data-icon="documents"></span><span class="menu-label">Documents</span></div>
+      <div class="menu-item submenu-trigger">
+        <span class="menu-icon" data-icon="settings"></span><span class="menu-label">Settings</span><span class="menu-arrow">&#9658;</span>
+        <div class="submenu hidden">
+          <div class="menu-item" onclick="openWindow('controlPanel')"><span class="menu-icon" data-icon="controlPanel"></span><span class="menu-label">Control Panel</span></div>
+          <div class="menu-item" onclick="notImplemented('Printers')"><span class="menu-icon" data-icon="controlPanel"></span><span class="menu-label">Printers</span></div>
+          <div class="menu-item" onclick="notImplemented('Taskbar settings')"><span class="menu-icon" data-icon="settings"></span><span class="menu-label">Taskbar...</span></div>
+        </div>
+      </div>
+      <div class="menu-item" onclick="searchDialog()"><span class="menu-icon" data-icon="find"></span><span class="menu-label">Find</span></div>
+      <div class="menu-item" onclick="helpDialog()"><span class="menu-icon" data-icon="help"></span><span class="menu-label">Help</span></div>
+      <div class="menu-item" onclick="runDialog()"><span class="menu-icon" data-icon="run"></span><span class="menu-label">Run...</span></div>
+      <div class="menu-separator"></div>
+      <div class="menu-item" onclick="aboutDialog()"><span class="menu-icon" data-icon="myComputer"></span><span class="menu-label">About Windows 95</span></div>
+      <div class="menu-separator"></div>
+      <div class="menu-item" onclick="shutdown()"><span class="menu-icon" data-icon="shutdown"></span><span class="menu-label">Shut Down...</span></div>
     </div>
-    <div class="menu-separator"></div>
-    <div class="menu-item" onclick="runDialog()">Run...</div>
-    <div class="menu-item" onclick="searchDialog()">Search...</div>
-    <div class="menu-item" onclick="helpDialog()">Help</div>
-    <div class="menu-item" onclick="aboutDialog()">About Windows 95</div>
-    <div class="menu-separator"></div>
-    <div class="menu-item" onclick="shutdown()">Shut Down</div>
   </div>
 
   <!-- Run Dialog -->
   <div id="run-dialog" class="hidden">
-    <div style="font-weight: bold; margin-bottom: 10px;">Run...</div>
-    <input type="text" id="run-input" style="width: 100%;" placeholder="Type a program name">
-    <div style="text-align: right; margin-top: 10px;">
+    <div class="dlg-titlebar"><span>Run</span>
+      <button type="button" class="win-caption-btn" onclick="hideRunDialog()" data-glyph="close"></button>
+    </div>
+    <div class="dlg-body">
+      <div class="dlg-icon" data-icon="run"></div>
+      <div style="flex:1;">
+        <div style="margin-bottom: 8px;">Type the name of a program, folder, document, or Internet resource, and Windows will open it for you.</div>
+        <input type="text" id="run-input" style="width: 100%;" placeholder="">
+      </div>
+    </div>
+    <div class="dlg-actions" style="padding: 0 12px 12px;">
       <button onclick="executeRun()">OK</button>
       <button onclick="hideRunDialog()">Cancel</button>
     </div>
@@ -501,9 +667,212 @@
 
   <!-- Control Panel Modal Dialog -->
   <div id="cp-modal">
-    <span id="cp-modal-close" onclick="closeCPModal()">X</span>
+    <div class="dlg-titlebar"><span id="cp-modal-title">Properties</span>
+      <span id="cp-modal-close" onclick="closeCPModal()">&times;</span>
+    </div>
     <div id="cp-modal-content"></div>
   </div>
+
+  <!-- ----------------- Icon Library ----------------- -->
+  <script>
+    /* Hand-drawn pixel-style recreations (not extracted Microsoft assets) of
+       classic Windows 95 iconography. All are 32x32 viewBox SVGs so they can
+       be reused at any size (desktop icons, menu items, titlebar glyphs). */
+    const ICONS = {
+      windowsFlag: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="2,4 15,2 15,14 2,16" fill="#FF3300"/>
+        <polygon points="17,2 30,4 30,16 17,14" fill="#33CC33"/>
+        <polygon points="2,18 15,16 15,28 2,30" fill="#0066FF"/>
+        <polygon points="17,16 30,18 30,30 17,28" fill="#FFCC00"/>
+      </svg>`,
+      myComputer: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="3" y="3" width="19" height="14" fill="#c0c0c0" stroke="#000"/>
+        <rect x="5" y="5" width="15" height="9" fill="#000080"/>
+        <rect x="9" y="17" width="7" height="2" fill="#c0c0c0" stroke="#000"/>
+        <rect x="6" y="19" width="13" height="2" fill="#808080" stroke="#000"/>
+        <rect x="21" y="9" width="9" height="20" fill="#dfdfdf" stroke="#000"/>
+        <rect x="23" y="12" width="5" height="1.5" fill="#000"/>
+        <rect x="23" y="16" width="5" height="1.5" fill="#000"/>
+        <circle cx="25.5" cy="25" r="1.4" fill="#00cc00"/>
+      </svg>`,
+      notepad: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="7" y="3" width="17" height="26" fill="#fff" stroke="#000"/>
+        <polygon points="18,3 24,9 18,9" fill="#c0c0c0" stroke="#000"/>
+        <line x1="10" y1="13" x2="21" y2="13" stroke="#0000aa" stroke-width="1"/>
+        <line x1="10" y1="16" x2="21" y2="16" stroke="#0000aa" stroke-width="1"/>
+        <line x1="10" y1="19" x2="21" y2="19" stroke="#0000aa" stroke-width="1"/>
+        <line x1="10" y1="22" x2="18" y2="22" stroke="#0000aa" stroke-width="1"/>
+      </svg>`,
+      calculator: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="6" y="3" width="20" height="26" fill="#dfdfdf" stroke="#000"/>
+        <rect x="8" y="5" width="16" height="6" fill="#b9c99b" stroke="#000"/>
+        <rect x="8" y="14" width="16" height="13" fill="#c0c0c0" stroke="#000"/>
+        <line x1="8" y1="18" x2="24" y2="18" stroke="#808080"/>
+        <line x1="8" y1="22" x2="24" y2="22" stroke="#808080"/>
+        <line x1="12" y1="14" x2="12" y2="27" stroke="#808080"/>
+        <line x1="16" y1="14" x2="16" y2="27" stroke="#808080"/>
+        <line x1="20" y1="14" x2="20" y2="27" stroke="#808080"/>
+      </svg>`,
+      paint: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <ellipse cx="14" cy="21" rx="11" ry="7" fill="#fff" stroke="#000"/>
+        <circle cx="9" cy="19" r="2" fill="#ff0000"/>
+        <circle cx="14" cy="16" r="2" fill="#ffcc00"/>
+        <circle cx="19" cy="19" r="2" fill="#0066ff"/>
+        <circle cx="16" cy="24" r="2" fill="#00aa00"/>
+        <rect x="19" y="3" width="3" height="13" fill="#c69c6d" stroke="#000" transform="rotate(35 20.5 9.5)"/>
+        <polygon points="23,15 28,19 25,22 20,18" fill="#dfdfdf" stroke="#000"/>
+      </svg>`,
+      commandPrompt: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="2" y="6" width="28" height="20" fill="#000" stroke="#808080"/>
+        <text x="5" y="19" font-family="monospace" font-size="9" fill="#c0c0c0">C:\\&gt;_</text>
+      </svg>`,
+      controlPanel: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="4" y="4" width="24" height="24" fill="#c0c0c0" stroke="#000"/>
+        <circle cx="11" cy="11" r="4" fill="#fff" stroke="#000"/>
+        <line x1="11" y1="11" x2="11" y2="8" stroke="#000"/>
+        <circle cx="21" cy="11" r="4" fill="#fff" stroke="#000"/>
+        <line x1="21" y1="11" x2="23" y2="9" stroke="#000"/>
+        <rect x="7" y="19" width="18" height="4" fill="#fff" stroke="#000"/>
+        <rect x="16" y="19" width="3" height="4" fill="#ff0000"/>
+      </svg>`,
+      recycleBin: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="6" y="7" width="20" height="3" fill="#c0c0c0" stroke="#000"/>
+        <rect x="12" y="4" width="8" height="3" fill="#c0c0c0" stroke="#000"/>
+        <polygon points="9,10 23,10 21,29 11,29" fill="#e8e8e8" stroke="#000"/>
+        <line x1="12.5" y1="12" x2="13.3" y2="27" stroke="#808080"/>
+        <line x1="16" y1="12" x2="16" y2="27" stroke="#808080"/>
+        <line x1="19.5" y1="12" x2="18.7" y2="27" stroke="#808080"/>
+      </svg>`,
+      internetExplorer: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <circle cx="16" cy="16" r="12" fill="#1a6fc4" stroke="#000"/>
+        <ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#fff" stroke-width="1.4"/>
+        <path d="M5 11 A12 12 0 0 1 27 11" fill="none" stroke="#fff" stroke-width="1.2"/>
+        <line x1="16" y1="4" x2="16" y2="28" stroke="#3a8fd8" stroke-width="1"/>
+      </svg>`,
+      solitaire: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="7" y="7" width="15" height="21" fill="#fff" stroke="#000" transform="rotate(-10 14.5 17.5)"/>
+        <rect x="10" y="4" width="15" height="21" fill="#fff" stroke="#000"/>
+        <text x="12" y="15" font-size="7" fill="#c00" font-weight="bold">A</text>
+        <text x="12" y="22" font-size="7" fill="#c00">&#9829;</text>
+      </svg>`,
+      folder: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="2,9 2,26 30,26 30,11 15,11 12,8 2,8" fill="#ffcc33" stroke="#000"/>
+        <polygon points="2,9 2,8 12,8 15,11 2,11" fill="#ffe28a" stroke="#000"/>
+      </svg>`,
+      textFile: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="6,2 20,2 26,8 26,30 6,30" fill="#fff" stroke="#000"/>
+        <polygon points="20,2 26,8 20,8" fill="#c0c0c0" stroke="#000"/>
+        <line x1="9" y1="13" x2="23" y2="13" stroke="#0000aa"/>
+        <line x1="9" y1="17" x2="23" y2="17" stroke="#0000aa"/>
+        <line x1="9" y1="21" x2="23" y2="21" stroke="#0000aa"/>
+        <line x1="9" y1="25" x2="17" y2="25" stroke="#0000aa"/>
+      </svg>`,
+      exeFile: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="6,2 20,2 26,8 26,30 6,30" fill="#c0c0c0" stroke="#000"/>
+        <polygon points="20,2 26,8 20,8" fill="#e8e8e8" stroke="#000"/>
+        <rect x="10" y="15" width="12" height="9" fill="#000080"/>
+        <text x="11.5" y="22" font-size="7" fill="#fff">95</text>
+      </svg>`,
+      programs: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="2,9 2,26 30,26 30,11 15,11 12,8 2,8" fill="#ffcc33" stroke="#000"/>
+        <rect x="8" y="14" width="10" height="7" fill="#fff" stroke="#000"/>
+        <rect x="16" y="16" width="10" height="7" fill="#c0c0c0" stroke="#000"/>
+      </svg>`,
+      documents: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="6,2 20,2 26,8 26,30 6,30" fill="#fff" stroke="#000"/>
+        <polygon points="20,2 26,8 20,8" fill="#c0c0c0" stroke="#000"/>
+        <line x1="9" y1="14" x2="23" y2="14" stroke="#000"/>
+        <line x1="9" y1="18" x2="23" y2="18" stroke="#000"/>
+        <line x1="9" y1="22" x2="17" y2="22" stroke="#000"/>
+      </svg>`,
+      settings: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="5" y="5" width="22" height="22" fill="#c0c0c0" stroke="#000"/>
+        <circle cx="16" cy="16" r="6" fill="#fff" stroke="#000"/>
+        <circle cx="16" cy="16" r="2" fill="#808080"/>
+        <rect x="15" y="4" width="2" height="4" fill="#000"/>
+        <rect x="15" y="24" width="2" height="4" fill="#000"/>
+        <rect x="4" y="15" width="4" height="2" fill="#000"/>
+        <rect x="24" y="15" width="4" height="2" fill="#000"/>
+      </svg>`,
+      find: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <circle cx="14" cy="14" r="9" fill="#fff" stroke="#000" stroke-width="2"/>
+        <line x1="20" y1="20" x2="28" y2="28" stroke="#000" stroke-width="3"/>
+      </svg>`,
+      help: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="4" y="6" width="24" height="20" fill="#fff" stroke="#000"/>
+        <text x="12" y="22" font-size="16" font-weight="bold" fill="#000080">?</text>
+      </svg>`,
+      run: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="4" y="6" width="20" height="15" fill="#c0c0c0" stroke="#000"/>
+        <rect x="6" y="8" width="16" height="9" fill="#000080"/>
+        <polygon points="18,20 26,24 18,28" fill="#ffcc33" stroke="#000"/>
+      </svg>`,
+      shutdown: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <circle cx="16" cy="18" r="9" fill="none" stroke="#c00" stroke-width="3"/>
+        <line x1="16" y1="6" x2="16" y2="18" stroke="#c00" stroke-width="3"/>
+      </svg>`,
+      display: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="4" y="6" width="24" height="16" fill="#c0c0c0" stroke="#000"/>
+        <rect x="7" y="9" width="18" height="10" fill="#000080"/>
+        <rect x="12" y="22" width="8" height="2" fill="#c0c0c0" stroke="#000"/>
+        <rect x="8" y="24" width="16" height="2" fill="#808080" stroke="#000"/>
+      </svg>`,
+      sound: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <polygon points="6,13 12,13 18,7 18,25 12,19 6,19" fill="#fff" stroke="#000"/>
+        <path d="M21 11 A8 8 0 0 1 21 21" fill="none" stroke="#000" stroke-width="1.5"/>
+        <path d="M24 8 A12 12 0 0 1 24 24" fill="none" stroke="#000" stroke-width="1.5"/>
+      </svg>`,
+      network: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="4" y="6" width="11" height="8" fill="#c0c0c0" stroke="#000"/>
+        <rect x="17" y="6" width="11" height="8" fill="#c0c0c0" stroke="#000"/>
+        <rect x="7" y="8" width="5" height="4" fill="#000080"/>
+        <rect x="20" y="8" width="5" height="4" fill="#000080"/>
+        <line x1="9.5" y1="14" x2="9.5" y2="20" stroke="#000"/>
+        <line x1="22.5" y1="14" x2="22.5" y2="20" stroke="#000"/>
+        <line x1="9.5" y1="20" x2="22.5" y2="20" stroke="#000"/>
+        <rect x="6" y="22" width="7" height="5" fill="#dfdfdf" stroke="#000"/>
+        <rect x="19" y="22" width="7" height="5" fill="#dfdfdf" stroke="#000"/>
+      </svg>`,
+      system: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <rect x="3" y="3" width="19" height="14" fill="#c0c0c0" stroke="#000"/>
+        <rect x="5" y="5" width="15" height="9" fill="#000080"/>
+        <rect x="21" y="9" width="9" height="20" fill="#dfdfdf" stroke="#000"/>
+        <rect x="23" y="12" width="5" height="1.5" fill="#000"/>
+        <text x="6" y="12" font-size="6" fill="#fff">i</text>
+      </svg>`,
+      users: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <circle cx="12" cy="10" r="5" fill="#ffdd99" stroke="#000"/>
+        <rect x="5" y="17" width="14" height="10" fill="#0066cc" stroke="#000"/>
+        <circle cx="22" cy="13" r="4" fill="#ffdd99" stroke="#000"/>
+        <rect x="17" y="19" width="11" height="8" fill="#cc3333" stroke="#000"/>
+      </svg>`,
+      datetime: `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+        <circle cx="16" cy="16" r="12" fill="#fff" stroke="#000"/>
+        <line x1="16" y1="16" x2="16" y2="8" stroke="#000" stroke-width="1.5"/>
+        <line x1="16" y1="16" x2="22" y2="16" stroke="#000" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="1.3" fill="#000"/>
+      </svg>`,
+      glyphMinimize: `<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect x="1" y="8" width="6" height="1.4" fill="#000"/></svg>`,
+      glyphMaximize: `<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect x="1" y="1" width="8" height="8" fill="none" stroke="#000" stroke-width="1.3"/><rect x="1" y="1" width="8" height="2" fill="#000"/></svg>`,
+      glyphRestore: `<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect x="3" y="1" width="6" height="6" fill="none" stroke="#000" stroke-width="1.1"/><rect x="3" y="1" width="6" height="1.6" fill="#000"/><rect x="1" y="3" width="6" height="6" fill="#c0c0c0" stroke="#000" stroke-width="1.1"/><rect x="1" y="3" width="6" height="1.6" fill="#000"/></svg>`,
+      glyphClose: `<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><path d="M1,1 L9,9 M9,1 L1,9" stroke="#000" stroke-width="1.6"/></svg>`
+    };
+
+    function applyIcons(root) {
+      (root || document).querySelectorAll('[data-icon]').forEach(function(el) {
+        const svg = ICONS[el.getAttribute('data-icon')];
+        if (svg) el.innerHTML = svg;
+      });
+    }
+    function applyGlyphs(root) {
+      (root || document).querySelectorAll('[data-glyph]').forEach(function(el) {
+        const name = 'glyph' + el.getAttribute('data-glyph').replace(/^./, c => c.toUpperCase());
+        if (ICONS[name]) el.innerHTML = ICONS[name];
+      });
+    }
+    applyIcons(document);
+    applyGlyphs(document);
+  </script>
 
   <!-- ----------------- Main Script ----------------- -->
   <script>
@@ -530,11 +899,14 @@
           clearInterval(interval);
           document.getElementById("loading-screen").style.display = "none";
           document.getElementById("desktop").style.display = "block";
-          if (!document.getElementById("myComputer").classList.contains("hidden")) {
+          const myComputerWin = document.getElementById("myComputer");
+          if (!myComputerWin.classList.contains("hidden")) {
             renderFileExplorer();
+            addTaskbarButton("myComputer", myComputerWin.querySelector(".window-title-text").innerText);
+            setActiveWindow(myComputerWin);
           }
         }
-      }, 30);
+      }, 20);
     }
     function dragElement(elmnt) {
       let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -558,16 +930,33 @@
       function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
     }
     document.querySelectorAll(".window").forEach(win => dragElement(win));
-    function bringToFront(win) { win.style.zIndex = Date.now(); }
+    function setActiveWindow(win) {
+      document.querySelectorAll(".window").forEach(w => w.classList.remove("active"));
+      win.classList.add("active");
+      document.querySelectorAll(".taskbar-btn").forEach(b => b.classList.remove("pressed"));
+      const tb = document.getElementById("tb-" + win.id);
+      if (tb) tb.classList.add("pressed");
+    }
+    let topZIndex = 100;
+    function bringToFront(win) { win.style.zIndex = ++topZIndex; setActiveWindow(win); }
+    function clearActiveState(win) {
+      win.classList.remove("active");
+      const tb = document.getElementById("tb-" + win.id);
+      if (tb) tb.classList.remove("pressed");
+    }
     function addTaskbarButton(id, title) {
       if (document.getElementById("tb-" + id)) return;
       const tb = document.getElementById("taskbar-buttons");
       const btn = document.createElement("button");
-      btn.innerText = title; btn.id = "tb-" + id;
+      btn.type = "button";
       btn.className = "taskbar-btn";
+      btn.id = "tb-" + id;
+      const iconEl = document.getElementById(id).querySelector(".window-title-icon");
+      btn.innerHTML = '<span class="icon">' + (iconEl ? iconEl.innerHTML : '') + '</span><span>' + title + '</span>';
       btn.onclick = function() {
         const win = document.getElementById(id);
         if (win.classList.contains("hidden")) { win.classList.remove("hidden"); bringToFront(win); }
+        else if (win.classList.contains("active")) { win.classList.add("hidden"); clearActiveState(win); }
         else { bringToFront(win); }
       };
       tb.appendChild(btn);
@@ -579,23 +968,35 @@
     function openWindow(id) {
       const win = document.getElementById(id);
       win.classList.remove("hidden"); bringToFront(win);
-      const title = win.querySelector(".window-titlebar span").innerText;
+      const title = win.querySelector(".window-title-text").innerText;
       addTaskbarButton(id, title);
+      setActiveWindow(win);
       hideStartMenu();
       if (id === "myComputer") renderFileExplorer();
       if (id === "recycleBin") renderRecycleBin();
       if (id === "solitaire") { if (!solitaire) initSolitaire(); else renderSolitaire(); }
     }
-    function closeWindow(id) { document.getElementById(id).classList.add("hidden"); removeTaskbarButton(id); }
-    function minimizeWindow(id) { document.getElementById(id).classList.add("hidden"); }
+    function closeWindow(id) {
+      document.getElementById(id).classList.add("hidden");
+      removeTaskbarButton(id);
+      const next = document.querySelector(".window:not(.hidden)");
+      if (next) setActiveWindow(next);
+    }
+    function minimizeWindow(id) {
+      const win = document.getElementById(id);
+      win.classList.add("hidden");
+      clearActiveState(win);
+    }
     function maximizeWindow(id) {
       const win = document.getElementById(id);
+      const glyphHolder = document.getElementById("maxbtn-" + id);
       if (windowStates[id] && windowStates[id].maximized) {
         win.style.top = windowStates[id].top;
         win.style.left = windowStates[id].left;
         win.style.width = windowStates[id].width;
         win.style.height = windowStates[id].height;
         windowStates[id].maximized = false;
+        if (glyphHolder) { glyphHolder.setAttribute("data-glyph", "maximize"); applyGlyphs(glyphHolder.parentElement); }
       } else {
         windowStates[id] = {
           top: win.style.top,
@@ -608,6 +1009,7 @@
         const taskbarHeight = document.getElementById("taskbar").offsetHeight;
         win.style.width = document.getElementById("desktop").offsetWidth + "px";
         win.style.height = (document.getElementById("desktop").offsetHeight - taskbarHeight) + "px";
+        if (glyphHolder) { glyphHolder.setAttribute("data-glyph", "restore"); applyGlyphs(glyphHolder.parentElement); }
       }
       bringToFront(win);
     }
@@ -620,7 +1022,7 @@
     document.addEventListener("click", function(e) {
       const startMenu = document.getElementById("start-menu");
       const startBtn = document.getElementById("start-btn");
-      if (!startMenu.contains(e.target) && e.target !== startBtn) { startMenu.classList.add("hidden"); }
+      if (!startMenu.contains(e.target) && !startBtn.contains(e.target)) { startMenu.classList.add("hidden"); }
     });
     document.querySelectorAll('.submenu-trigger').forEach(function(item) {
       item.addEventListener('mouseenter', function(e) { let submenu = this.querySelector('.submenu'); if (submenu) submenu.classList.remove('hidden'); });
@@ -636,12 +1038,15 @@
       else if (cmd === "paint") openWindow("paint");
       else if (cmd === "cmd" || cmd === "command prompt") openWindow("commandPrompt");
       else if (cmd === "solitaire") openWindow("solitaire");
-      else { alert("The program \"" + cmd + "\" was not found."); }
+      else if (cmd === "control") openWindow("controlPanel");
+      else { alert("Cannot find '" + cmd + "'. Make sure you typed the name correctly."); }
     }
-    function searchDialog() { alert("Search functionality is not implemented yet."); }
-    function helpDialog() { alert("Help functionality is not implemented yet."); }
-    function aboutDialog() { alert("Windows 95\n(c) Microsoft 1995"); }
-    function shutdown() { if (confirm("Are you sure you want to shut down?")) { location.reload(); } }
+    function searchDialog() { hideStartMenu(); alert("Find: Files or Folders...\n\nThis feature is not implemented in the simulation yet."); }
+    function helpDialog() { hideStartMenu(); alert("Windows Help\n\nThis feature is not implemented in the simulation yet."); }
+    function aboutDialog() { hideStartMenu(); alert("Microsoft Windows 95\n(c) Microsoft Corporation 1981-1995."); }
+    function documentsDialog() { hideStartMenu(); alert("There are no recent documents."); }
+    function notImplemented(name) { hideStartMenu(); alert(name + " is not implemented in this simulation yet."); }
+    function shutdown() { hideStartMenu(); if (confirm("Are you sure you want to shut down your computer?")) { location.reload(); } }
     let calcExpression = "";
     function calcInput(val) { if (calcExpression === "" && val !== ".") { calcExpression = val; } else { calcExpression += val; } updateCalcDisplay(); }
     function updateCalcDisplay() { document.getElementById("calc-display").innerText = calcExpression || "0"; }
@@ -679,7 +1084,7 @@
       if (input === "dir") {
         output.innerText += "\n Volume in drive C is OS\n Directory of C:\\\n\n  Program Files\n  Windows\n  Users\n\n";
       } else if (input === "cls") {
-        output.innerText = "Microsoft Windows [Version 4.00.950]";
+        output.innerText = "Microsoft Windows 95";
       } else if (input.startsWith("echo")) {
         output.innerText += "\n" + cmd.substring(5);
       } else if (input === "time") {
@@ -687,18 +1092,18 @@
       } else if (input === "help") {
         output.innerText += "\n Available commands: dir, cls, echo, time, help";
       } else {
-        output.innerText += "\n'" + cmd + "' is not recognized as an internal or external command.";
+        output.innerText += "\nBad command or file name";
       }
       output.innerText += "\nC:\\>";
       output.scrollTop = output.scrollHeight;
     }
     function updateClock() {
       const now = new Date();
-      let hours = now.getHours(), minutes = now.getMinutes(), seconds = now.getSeconds();
-      hours = hours < 10 ? "0" + hours : hours;
+      let hours = now.getHours(), minutes = now.getMinutes();
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12; if (hours === 0) hours = 12;
       minutes = minutes < 10 ? "0" + minutes : minutes;
-      seconds = seconds < 10 ? "0" + seconds : seconds;
-      document.getElementById("clock").innerText = hours + ":" + minutes + ":" + seconds;
+      document.getElementById("clock").innerText = hours + ":" + minutes + " " + ampm;
     }
     setInterval(updateClock, 1000); updateClock();
     document.getElementById("desktop").addEventListener("contextmenu", function(e) {
@@ -762,6 +1167,8 @@
       let currentFolder;
       if (currentPath.length === 0) { currentFolder = fileSystem; }
       else { currentFolder = getCurrentFolder(); }
+      const listWrap = document.createElement("div");
+      listWrap.id = "file-list-wrap";
       const fileList = document.createElement("ul");
       fileList.id = "file-list";
       for (let name in currentFolder) {
@@ -784,26 +1191,19 @@
             alert("Launching " + name + "...\n(This is a simulation.)");
           }
         };
-        const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        icon.setAttribute("width", "16");
-        icon.setAttribute("height", "16");
-        icon.classList.add("file-icon");
-        if (typeof item === "object" && !item.type) {
-          icon.innerHTML = '<rect x="1" y="4" width="14" height="10" fill="#ffcc00" stroke="#000" stroke-width="0.5"/>' +
-                           '<polyline points="1,4 1,2 7,2 9,4" fill="none" stroke="#000" stroke-width="1"/>';
-        } else if (item.type === "txt") {
-          icon.innerHTML = '<rect x="1" y="1" width="14" height="14" fill="#fff" stroke="#000" stroke-width="0.5"/>' +
-                           '<line x1="3" y1="4" x2="13" y2="4" stroke="#000" stroke-width="1"/>';
-        } else if (item.type === "exe") {
-          icon.innerHTML = '<rect x="1" y="1" width="14" height="14" fill="#c0c0c0" stroke="#000" stroke-width="0.5"/>';
-        }
-        li.appendChild(icon);
+        const iconSpan = document.createElement("span");
+        iconSpan.className = "file-icon";
+        if (typeof item === "object" && !item.type) { iconSpan.innerHTML = ICONS.folder; }
+        else if (item.type === "txt") { iconSpan.innerHTML = ICONS.textFile; }
+        else if (item.type === "exe") { iconSpan.innerHTML = ICONS.exeFile; }
+        li.appendChild(iconSpan);
         const span = document.createElement("span");
         span.innerText = name;
         li.appendChild(span);
         fileList.appendChild(li);
       }
-      container.appendChild(fileList);
+      listWrap.appendChild(fileList);
+      container.appendChild(listWrap);
     }
     function newFolder() {
       let name = prompt("Enter folder name:", "New Folder");
@@ -852,21 +1252,31 @@
         container.appendChild(p);
         return;
       }
+      const listWrap = document.createElement("div");
+      listWrap.id = "file-list-wrap";
       const list = document.createElement("ul");
       list.id = "file-list";
       recycleBin.forEach((entry, idx) => {
         const li = document.createElement("li");
         li.style.justifyContent = "space-between";
+        const left = document.createElement("span");
+        left.style.display = "flex"; left.style.alignItems = "center"; left.style.gap = "5px";
+        const iconSpan = document.createElement("span");
+        iconSpan.className = "file-icon";
+        iconSpan.innerHTML = (entry.item && entry.item.type) ? (entry.item.type === "exe" ? ICONS.exeFile : ICONS.textFile) : ICONS.folder;
+        left.appendChild(iconSpan);
         const nameSpan = document.createElement("span");
         nameSpan.innerText = entry.name;
-        li.appendChild(nameSpan);
+        left.appendChild(nameSpan);
+        li.appendChild(left);
         const restoreBtn = document.createElement("button");
         restoreBtn.innerText = "Restore";
         restoreBtn.onclick = function(e) { e.stopPropagation(); restoreItem(idx); };
         li.appendChild(restoreBtn);
         list.appendChild(li);
       });
-      container.appendChild(list);
+      listWrap.appendChild(list);
+      container.appendChild(listWrap);
     }
     function restoreItem(idx) {
       const entry = recycleBin[idx];
@@ -923,24 +1333,21 @@
           content = "System Properties:\nOS: Windows 95 (simulated)\nCPU: 33MHz\nRAM: 4MB";
           break;
         case "Users":
-          content = "User Accounts:\nThis simulation supports a single user.";
+          content = "Passwords Properties:\nThis simulation supports a single user.";
           break;
         case "Date/Time":
-          content = "Current Date and Time:\n" + new Date().toLocaleString();
+          content = "Date/Time Properties:\n" + new Date().toLocaleString();
           break;
         default:
           content = "No details available.";
       }
+      document.getElementById("cp-modal-title").innerText = item + " Properties";
       document.getElementById("cp-modal-content").innerText = content;
       document.getElementById("cp-modal").style.display = "block";
     }
     function closeCPModal() {
       document.getElementById("cp-modal").style.display = "none";
     }
-
-    /* ----------------- Paint Functions ----------------- */
-    // (Toolbar and canvas already set up in HTML)
-    // Canvas drawing code is already active from event listeners above.
 
     /* ---------------- Internet Explorer Functions ---------------- */
     function ieNavigate() {
@@ -949,7 +1356,7 @@
       if (url === "" || url === "about:home") {
         page.innerHTML = "<h3 style='margin-top:0;'>Welcome to the Web!</h3><p>Type an address above and click Go.</p>";
       } else {
-        page.innerHTML = "<h3 style='margin-top:0;'>Internet Explorer cannot display the webpage</h3>" +
+        page.innerHTML = "<h3 style='margin-top:0;'>The page cannot be displayed</h3>" +
           "<p>You are not connected to the Internet. This simulation does not make real network requests.</p>" +
           "<p><em>" + url.replace(/</g, "&lt;") + "</em> could not be reached.</p>";
       }
@@ -1071,7 +1478,7 @@
     }
     function renderCardEl(card, faceUp, onClick, selected) {
       const div = document.createElement("div");
-      div.style.cssText = "width:34px; height:48px; border:1px solid #000; border-radius:3px; " +
+      div.style.cssText = "width:34px; height:48px; border:1px solid #000; " +
         "background:" + (faceUp ? "#fff" : "repeating-linear-gradient(45deg,#008,#008 4px,#00a 4px,#00a 8px)") + "; " +
         "display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; " +
         "cursor:pointer; user-select:none; box-sizing:border-box;" +
@@ -1166,34 +1573,6 @@
       container.appendChild(controls);
     }
     /* ----------------- End of Main Script ----------------- */
-  </script>
-
-  <!-- ---------------- Inline SVG Icon Injection for Desktop Icons ---------------- -->
-  <script>
-    document.querySelectorAll('.desktop-icon').forEach(function(icon) {
-      const label = icon.querySelector('.icon-label').innerText;
-      let svg = "";
-      if (label === "My Computer") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="6" width="24" height="16" fill="#c0c0c0" stroke="#000" stroke-width="1"/><rect x="10" y="22" width="12" height="4" fill="#c0c0c0" stroke="#000" stroke-width="1"/></svg>';
-      } else if (label === "Notepad") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="4" width="20" height="24" fill="#fff" stroke="#000" stroke-width="1"/><line x1="8" y1="10" x2="24" y2="10" stroke="#000" stroke-width="1"/><line x1="8" y1="14" x2="24" y2="14" stroke="#000" stroke-width="1"/><line x1="8" y1="18" x2="24" y2="18" stroke="#000" stroke-width="1"/></svg>';
-      } else if (label === "Calculator") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="24" height="24" fill="#fff" stroke="#000" stroke-width="1"/><rect x="8" y="8" width="16" height="4" fill="#c0c0c0" stroke="#000" stroke-width="1"/><rect x="8" y="14" width="6" height="6" fill="#c0c0c0" stroke="#000" stroke-width="1"/><rect x="18" y="14" width="6" height="6" fill="#c0c0c0" stroke="#000" stroke-width="1"/></svg>';
-      } else if (label === "Paint") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#ffcc00" stroke="#000" stroke-width="1"/><circle cx="12" cy="14" r="2" fill="#000"/><circle cx="20" cy="14" r="2" fill="#000"/></svg>';
-      } else if (label === "Command Prompt") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="8" width="24" height="16" fill="#000" stroke="#fff" stroke-width="1"/><text x="8" y="20" font-size="10" fill="#0f0">&gt;</text></svg>';
-      } else if (label === "Control Panel") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="10" fill="#fff" stroke="#000" stroke-width="1"/><path d="M16 6 L16 26 M6 16 L26 16" stroke="#000" stroke-width="1"/></svg>';
-      } else if (label === "Recycle Bin") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="12" height="12" fill="#ccc" stroke="#000" stroke-width="1"/><line x1="10" y1="10" x2="22" y2="22" stroke="#000" stroke-width="1"/><line x1="22" y1="10" x2="10" y2="22" stroke="#000" stroke-width="1"/></svg>';
-      } else if (label === "Internet Explorer") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#00aaff" stroke="#fff" stroke-width="1"/><path d="M16 4 A12 12 0 0 1 28 16" stroke="#fff" stroke-width="2" fill="none"/></svg>';
-      } else if (label === "Solitaire") {
-        svg = '<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="6" width="16" height="24" fill="#fff" stroke="#000" stroke-width="1"/><text x="16" y="22" font-size="10" text-anchor="middle" fill="#000">A</text></svg>';
-      }
-      icon.querySelector('.icon').innerHTML = svg;
-    });
   </script>
 </body>
 </html>

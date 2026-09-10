@@ -1,0 +1,12 @@
+MS Sans Serif (webfont)
+------------------------
+The FontStruction "MS Sans Serif" (https://fontstruct.com/fontstructions/show/1384746)
+by "lou" is licensed under a Creative Commons Attribution-ShareAlike 3.0
+license (http://creativecommons.org/licenses/by-sa/3.0/).
+
+Converted to woff/woff2 by the 98.css project (https://github.com/jdan/98.css),
+MIT licensed, Copyright 2020 Jordan Scales. Files retrieved from
+https://unpkg.com/98.css@0.1.20/fonts/converted/ and https://unpkg.com/98.css@0.1.20/dist/.
+
+This is an independent fan recreation of the classic bitmap UI font and is not
+Microsoft's original "MS Sans Serif" font file.

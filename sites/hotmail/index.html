@@ -1,0 +1,91 @@
+<!--
+  Recreation of Hotmail's homepage, styled after the real hotmail.com of
+  1997-98 (Hotmail launched July 1996 and was one of the first free
+  webmail services; wording like "The World's FREE Web-Based Email" and
+  the Member Name / Sign Up layout are drawn from that era's real site).
+  The original page was built almost entirely from small label GIFs that
+  are no longer recoverable from web archives, so this rebuild reproduces
+  the layout and copy in plain HTML/CSS instead of pixel-matching lost art.
+
+  This login/signup flow is 100% local: "accounts" are saved only in this
+  browser's localStorage, nothing is ever sent anywhere, and there is no
+  real mailbox behind it.
+-->
+<html>
+<head>
+<title>Hotmail - The World's FREE Web-Based Email</title>
+<style>
+  body { background:#fff; font-family: Arial, Helvetica, sans-serif; color:#000; margin:0; }
+  .hm-wrap { max-width: 560px; margin: 0 auto; padding: 18px; }
+  .hm-logo { font-size: 40px; font-weight: bold; font-style: italic; color: #003399; letter-spacing: -1px; }
+  .hm-tag { color:#cc0000; font-weight:bold; font-size:13px; margin-top:2px; }
+  .hm-box { border: 1px solid #003399; margin-top: 16px; }
+  .hm-box-head { background:#003399; color:#fff; font-weight:bold; padding:3px 8px; font-size:13px; }
+  .hm-box-body { padding: 10px; font-size:13px; }
+  .hm-box-body input[type=text], .hm-box-body input[type=password] { border:1px solid #808080; padding:2px; font-size:13px; }
+  .hm-error { color:#cc0000; font-weight:bold; font-size:12px; margin-top:6px; }
+  .hm-links a { color:#003399; }
+  .hm-foot { font-size:11px; color:#555; margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="hm-wrap">
+  <div class="hm-logo">Hotmail</div>
+  <div class="hm-tag">The World's FREE Web-Based Email</div>
+
+  <div class="hm-box">
+    <div class="hm-box-head">Registered Users - Please Log In</div>
+    <div class="hm-box-body">
+      <form id="hm-login-form" onsubmit="return hmLogin(event)">
+        Member Name: <input type="text" id="hm-login-name" size="16" maxlength="16"> @hotmail.com<br><br>
+        Password: <input type="password" id="hm-login-pass" size="16" maxlength="16"><br><br>
+        <input type="submit" value="Sign In">
+        <div class="hm-error" id="hm-login-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="hm-box">
+    <div class="hm-box-head">New Here?</div>
+    <div class="hm-box-body hm-links">
+      <a href="signup.html">Sign Up Here for your free account</a><br>
+      No software. No configuration other than optional one-time POP mail setup.
+    </div>
+  </div>
+
+  <p class="hm-foot">
+    Try Member Name <b>demo</b>, password <b>demo123</b> if you don't want to sign up.<br>
+    Copyright 1996-1998 Hotmail Corp. (recreated -- not the real Hotmail)
+  </p>
+</div>
+
+<script>
+  const STORE_KEY = "win95_hotmail_accounts";
+
+  function hmLoadAccounts() {
+    let accounts;
+    try { accounts = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); } catch (e) { accounts = null; }
+    if (!accounts) {
+      accounts = { demo: { password: "demo123", first: "Demo", last: "User" } };
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(accounts)); } catch (e) {}
+    }
+    return accounts;
+  }
+
+  function hmLogin(e) {
+    e.preventDefault();
+    const name = document.getElementById("hm-login-name").value.trim().toLowerCase();
+    const pass = document.getElementById("hm-login-pass").value;
+    const accounts = hmLoadAccounts();
+    const err = document.getElementById("hm-login-error");
+    if (accounts[name] && accounts[name].password === pass) {
+      try { sessionStorage.setItem("win95_hotmail_user", name); } catch (e) {}
+      location.href = "inbox.html";
+    } else {
+      err.textContent = "Invalid Member Name or password. Please try again.";
+    }
+    return false;
+  }
+</script>
+</body>
+</html>

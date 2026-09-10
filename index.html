@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ultimate Windows 95 Simulation – Enhanced Apps</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%96%A5%EF%B8%8F%3C/text%3E%3C/svg%3E">
   <style>
     /* --- Base & Reset --- */
     html, body {
@@ -350,7 +352,92 @@
       </div>
     </div>
 
-    <!-- (Other windows such as Recycle Bin, Internet Explorer, Solitaire remain as in previous versions.) -->
+    <!-- Calculator Window -->
+    <div class="window hidden" id="calculator" style="top: 90px; left: 400px; width: 210px; height: 260px;">
+      <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
+        <span>Calculator</span>
+        <div class="window-controls">
+          <span onclick="minimizeWindow('calculator'); event.stopPropagation();">_</span>
+          <span onclick="maximizeWindow('calculator'); event.stopPropagation();">[ ]</span>
+          <span onclick="closeWindow('calculator'); event.stopPropagation();">X</span>
+        </div>
+      </div>
+      <div class="window-content" style="padding: 6px; background: #c0c0c0;">
+        <div id="calc-display" style="background:#fff; border:1px inset #808080; text-align:right; padding:4px 6px; font-family:monospace; font-size:16px; margin-bottom:6px; min-height:20px; overflow:hidden;">0</div>
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:3px;">
+          <button onclick="clearCalc()">C</button>
+          <button onclick="calcInput('/')">/</button>
+          <button onclick="calcInput('*')">&times;</button>
+          <button onclick="calcInput('-')">-</button>
+          <button onclick="calcInput('7')">7</button>
+          <button onclick="calcInput('8')">8</button>
+          <button onclick="calcInput('9')">9</button>
+          <button onclick="calcInput('+')" style="grid-row: span 2;">+</button>
+          <button onclick="calcInput('4')">4</button>
+          <button onclick="calcInput('5')">5</button>
+          <button onclick="calcInput('6')">6</button>
+          <button onclick="calcInput('1')">1</button>
+          <button onclick="calcInput('2')">2</button>
+          <button onclick="calcInput('3')">3</button>
+          <button onclick="calculateResult()" style="grid-row: span 2;">=</button>
+          <button onclick="calcInput('0')" style="grid-column: span 2;">0</button>
+          <button onclick="calcInput('.')">.</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recycle Bin Window -->
+    <div class="window hidden" id="recycleBin" style="top: 60px; left: 420px; width: 280px; height: 220px;">
+      <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
+        <span>Recycle Bin</span>
+        <div class="window-controls">
+          <span onclick="minimizeWindow('recycleBin'); event.stopPropagation();">_</span>
+          <span onclick="maximizeWindow('recycleBin'); event.stopPropagation();">[ ]</span>
+          <span onclick="closeWindow('recycleBin'); event.stopPropagation();">X</span>
+        </div>
+      </div>
+      <div class="window-content">
+        <div id="recycle-bin-container"></div>
+      </div>
+    </div>
+
+    <!-- Internet Explorer Window -->
+    <div class="window hidden" id="internetExplorer" style="top: 70px; left: 380px; width: 380px; height: 260px;">
+      <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
+        <span>Internet Explorer</span>
+        <div class="window-controls">
+          <span onclick="minimizeWindow('internetExplorer'); event.stopPropagation();">_</span>
+          <span onclick="maximizeWindow('internetExplorer'); event.stopPropagation();">[ ]</span>
+          <span onclick="closeWindow('internetExplorer'); event.stopPropagation();">X</span>
+        </div>
+      </div>
+      <div class="window-content" style="padding: 0; display: flex; flex-direction: column;">
+        <div style="display:flex; gap:4px; padding:4px; background:#c0c0c0; border-bottom:1px solid #808080;">
+          <input id="ie-address" type="text" value="about:home" style="flex:1; font-size:12px;"
+            onkeydown="if(event.key==='Enter'){ ieNavigate(); }">
+          <button onclick="ieNavigate()">Go</button>
+        </div>
+        <div id="ie-page" style="background:#fff; flex:1; overflow:auto; padding:10px; font-size:12px;">
+          <h3 style="margin-top:0;">Welcome to the Web!</h3>
+          <p>Type an address above and click Go.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solitaire Window -->
+    <div class="window hidden" id="solitaire" style="top: 40px; left: 100px; width: 480px; height: 360px;">
+      <div class="window-titlebar" onmousedown="bringToFront(this.parentElement)">
+        <span>Solitaire</span>
+        <div class="window-controls">
+          <span onclick="minimizeWindow('solitaire'); event.stopPropagation();">_</span>
+          <span onclick="maximizeWindow('solitaire'); event.stopPropagation();">[ ]</span>
+          <span onclick="closeWindow('solitaire'); event.stopPropagation();">X</span>
+        </div>
+      </div>
+      <div class="window-content" style="background: #076324;">
+        <div id="solitaire-container"></div>
+      </div>
+    </div>
 
     <!-- Desktop Right-Click Context Menu -->
     <div id="context-menu" class="hidden">
@@ -496,7 +583,8 @@
       addTaskbarButton(id, title);
       hideStartMenu();
       if (id === "myComputer") renderFileExplorer();
-      if (id === "solitaire") initSolitaire();
+      if (id === "recycleBin") renderRecycleBin();
+      if (id === "solitaire") { if (!solitaire) initSolitaire(); else renderSolitaire(); }
     }
     function closeWindow(id) { document.getElementById(id).classList.add("hidden"); removeTaskbarButton(id); }
     function minimizeWindow(id) { document.getElementById(id).classList.add("hidden"); }
@@ -641,6 +729,7 @@
     };
     let currentPath = [];
     let selectedFileName = null;
+    let recycleBin = [];
     function getCurrentFolder() {
       let folder = fileSystem;
       for (let p of currentPath) { folder = folder[p]; }
@@ -736,9 +825,66 @@
       if (!selectedFileName) { alert("No item selected!"); return; }
       if (confirm("Delete " + selectedFileName + "?")) {
         let current = getCurrentFolder();
+        recycleBin.push({ name: selectedFileName, item: current[selectedFileName], path: [...currentPath] });
         delete current[selectedFileName];
         selectedFileName = null;
         renderFileExplorer();
+        renderRecycleBin();
+      }
+    }
+
+    /* ---------------- Recycle Bin Functions ---------------- */
+    function renderRecycleBin() {
+      const container = document.getElementById("recycle-bin-container");
+      if (!container) return;
+      container.innerHTML = "";
+      const toolbar = document.createElement("div");
+      toolbar.id = "file-explorer-toolbar";
+      const emptyBtn = document.createElement("button");
+      emptyBtn.innerText = "Empty Recycle Bin";
+      emptyBtn.onclick = emptyRecycleBin;
+      toolbar.appendChild(emptyBtn);
+      container.appendChild(toolbar);
+      if (recycleBin.length === 0) {
+        const p = document.createElement("div");
+        p.style.padding = "8px";
+        p.innerText = "The Recycle Bin is empty.";
+        container.appendChild(p);
+        return;
+      }
+      const list = document.createElement("ul");
+      list.id = "file-list";
+      recycleBin.forEach((entry, idx) => {
+        const li = document.createElement("li");
+        li.style.justifyContent = "space-between";
+        const nameSpan = document.createElement("span");
+        nameSpan.innerText = entry.name;
+        li.appendChild(nameSpan);
+        const restoreBtn = document.createElement("button");
+        restoreBtn.innerText = "Restore";
+        restoreBtn.onclick = function(e) { e.stopPropagation(); restoreItem(idx); };
+        li.appendChild(restoreBtn);
+        list.appendChild(li);
+      });
+      container.appendChild(list);
+    }
+    function restoreItem(idx) {
+      const entry = recycleBin[idx];
+      let folder = fileSystem;
+      for (let p of entry.path) {
+        if (!folder[p]) folder[p] = {};
+        folder = folder[p];
+      }
+      folder[entry.name] = entry.item;
+      recycleBin.splice(idx, 1);
+      renderRecycleBin();
+      renderFileExplorer();
+    }
+    function emptyRecycleBin() {
+      if (recycleBin.length === 0) return;
+      if (confirm("Permanently delete all " + recycleBin.length + " item(s) in the Recycle Bin?")) {
+        recycleBin = [];
+        renderRecycleBin();
       }
     }
     function renameItem() {
@@ -791,48 +937,234 @@
     function closeCPModal() {
       document.getElementById("cp-modal").style.display = "none";
     }
-    /* ----------------- Command Prompt Functions ----------------- */
-    function processCommand(cmd) {
-      const output = document.getElementById("cmd-output");
-      let input = cmd.trim().toLowerCase();
-      if (input === "dir") {
-        output.innerText += "\n Volume in drive C is OS\n Directory of C:\\\n\n  Program Files\n  Windows\n  Users\n\n";
-      } else if (input === "cls") {
-        output.innerText = "Microsoft Windows [Version 4.00.950]";
-      } else if (input.startsWith("echo")) {
-        output.innerText += "\n" + cmd.substring(5);
-      } else if (input === "time") {
-        output.innerText += "\n " + new Date().toLocaleTimeString();
-      } else if (input === "help") {
-        output.innerText += "\n Available commands: dir, cls, echo, time, help";
-      } else {
-        output.innerText += "\n'" + cmd + "' is not recognized as an internal or external command.";
-      }
-      output.innerText += "\nC:\\>";
-      output.scrollTop = output.scrollHeight;
-    }
-    /* ----------------- Clock ----------------- */
-    function updateClock() {
-      const now = new Date();
-      let hours = now.getHours(), minutes = now.getMinutes(), seconds = now.getSeconds();
-      hours = hours < 10 ? "0" + hours : hours;
-      minutes = minutes < 10 ? "0" + minutes : minutes;
-      seconds = seconds < 10 ? "0" + seconds : seconds;
-      document.getElementById("clock").innerText = hours + ":" + minutes + ":" + seconds;
-    }
-    setInterval(updateClock, 1000); updateClock();
-    document.getElementById("desktop").addEventListener("contextmenu", function(e) {
-      e.preventDefault();
-      const menu = document.getElementById("context-menu");
-      menu.style.top = e.clientY + "px"; menu.style.left = e.clientX + "px";
-      menu.classList.remove("hidden");
-    });
-    document.addEventListener("click", function(e) { if (e.button !== 2) { hideContextMenu(); } });
-    function hideContextMenu() { document.getElementById("context-menu").classList.add("hidden"); }
 
     /* ----------------- Paint Functions ----------------- */
     // (Toolbar and canvas already set up in HTML)
     // Canvas drawing code is already active from event listeners above.
+
+    /* ---------------- Internet Explorer Functions ---------------- */
+    function ieNavigate() {
+      const url = document.getElementById("ie-address").value.trim().toLowerCase();
+      const page = document.getElementById("ie-page");
+      if (url === "" || url === "about:home") {
+        page.innerHTML = "<h3 style='margin-top:0;'>Welcome to the Web!</h3><p>Type an address above and click Go.</p>";
+      } else {
+        page.innerHTML = "<h3 style='margin-top:0;'>Internet Explorer cannot display the webpage</h3>" +
+          "<p>You are not connected to the Internet. This simulation does not make real network requests.</p>" +
+          "<p><em>" + url.replace(/</g, "&lt;") + "</em> could not be reached.</p>";
+      }
+    }
+
+    /* ---------------- Solitaire (simplified single-card Klondike) ---------------- */
+    let solitaire = null;
+    function createDeck() {
+      const suits = [
+        { symbol: '♠', color: 'black' },
+        { symbol: '♥', color: 'red' },
+        { symbol: '♦', color: 'red' },
+        { symbol: '♣', color: 'black' }
+      ];
+      const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+      const deck = [];
+      suits.forEach(suit => {
+        ranks.forEach((rank, i) => {
+          deck.push({ suit: suit.symbol, color: suit.color, rank: rank, value: i + 1, faceUp: false });
+        });
+      });
+      return deck;
+    }
+    function shuffleDeck(deck) {
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+    function initSolitaire() {
+      const deck = shuffleDeck(createDeck());
+      const tableau = [[], [], [], [], [], [], []];
+      for (let i = 0; i < 7; i++) {
+        for (let j = i; j < 7; j++) {
+          const card = deck.pop();
+          if (j === i) card.faceUp = true;
+          tableau[j].push(card);
+        }
+      }
+      solitaire = {
+        tableau: tableau,
+        foundations: { '♠': [], '♥': [], '♦': [], '♣': [] },
+        stock: deck,
+        waste: [],
+        selected: null
+      };
+      renderSolitaire();
+    }
+    function getPile(source, index) {
+      if (source === 'tableau') return solitaire.tableau[index];
+      if (source === 'waste') return solitaire.waste;
+      if (source === 'foundation') return solitaire.foundations[index];
+    }
+    function drawFromStock() {
+      if (solitaire.stock.length === 0) {
+        solitaire.stock = solitaire.waste.reverse();
+        solitaire.stock.forEach(c => c.faceUp = false);
+        solitaire.waste = [];
+      } else {
+        const card = solitaire.stock.pop();
+        card.faceUp = true;
+        solitaire.waste.push(card);
+      }
+      solitaire.selected = null;
+      renderSolitaire();
+    }
+    function selectCard(source, pileIndex) {
+      const pile = getPile(source, pileIndex);
+      const card = pile[pile.length - 1];
+      if (!card || !card.faceUp) return;
+      if (solitaire.selected && solitaire.selected.source === source && solitaire.selected.pileIndex === pileIndex) {
+        solitaire.selected = null;
+      } else {
+        solitaire.selected = { source, pileIndex };
+      }
+      renderSolitaire();
+    }
+    function tryMoveTo(destSource, destIndex) {
+      if (!solitaire.selected) return;
+      const { source, pileIndex } = solitaire.selected;
+      if (destSource === source && destIndex === pileIndex) {
+        solitaire.selected = null; renderSolitaire(); return;
+      }
+      const srcPile = getPile(source, pileIndex);
+      const card = srcPile[srcPile.length - 1];
+      if (!card) { solitaire.selected = null; renderSolitaire(); return; }
+
+      let valid = false;
+      if (destSource === 'foundation') {
+        const f = solitaire.foundations[destIndex];
+        valid = (f.length === 0 && card.value === 1) ||
+                (f.length > 0 && f[f.length - 1].suit === card.suit && f[f.length - 1].value === card.value - 1);
+      } else if (destSource === 'tableau') {
+        const t = solitaire.tableau[destIndex];
+        if (t.length === 0) {
+          valid = card.value === 13;
+        } else {
+          const top = t[t.length - 1];
+          valid = top.faceUp && top.color !== card.color && top.value === card.value + 1;
+        }
+      }
+      if (valid) {
+        srcPile.pop();
+        if (destSource === 'foundation') solitaire.foundations[destIndex].push(card);
+        else solitaire.tableau[destIndex].push(card);
+        if (source === 'tableau') {
+          const remaining = solitaire.tableau[pileIndex];
+          if (remaining.length > 0) remaining[remaining.length - 1].faceUp = true;
+        }
+        checkSolitaireWin();
+      }
+      solitaire.selected = null;
+      renderSolitaire();
+    }
+    function checkSolitaireWin() {
+      const total = Object.values(solitaire.foundations).reduce((sum, f) => sum + f.length, 0);
+      if (total === 52) { setTimeout(() => alert("Congratulations, you win!"), 100); }
+    }
+    function renderCardEl(card, faceUp, onClick, selected) {
+      const div = document.createElement("div");
+      div.style.cssText = "width:34px; height:48px; border:1px solid #000; border-radius:3px; " +
+        "background:" + (faceUp ? "#fff" : "repeating-linear-gradient(45deg,#008,#008 4px,#00a 4px,#00a 8px)") + "; " +
+        "display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; " +
+        "cursor:pointer; user-select:none; box-sizing:border-box;" +
+        (faceUp ? ("color:" + (card.color === "red" ? "#c00" : "#000") + ";") : "") +
+        (selected ? "outline:2px solid #ff0;" : "");
+      if (faceUp) div.innerText = card.rank + card.suit;
+      div.onclick = onClick;
+      return div;
+    }
+    function renderSolitaire() {
+      const container = document.getElementById("solitaire-container");
+      if (!container || !solitaire) return;
+      container.innerHTML = "";
+      container.style.cssText = "display:flex; flex-direction:column; gap:10px; padding:8px;";
+
+      const topRow = document.createElement("div");
+      topRow.style.cssText = "display:flex; gap:8px; align-items:flex-start;";
+
+      const stockWrap = document.createElement("div");
+      stockWrap.appendChild(renderCardEl({}, false, drawFromStock, false));
+      topRow.appendChild(stockWrap);
+
+      const wasteWrap = document.createElement("div");
+      if (solitaire.waste.length > 0) {
+        const wc = solitaire.waste[solitaire.waste.length - 1];
+        const sel = !!(solitaire.selected && solitaire.selected.source === 'waste');
+        wasteWrap.appendChild(renderCardEl(wc, true, () => {
+          if (solitaire.selected) tryMoveTo('waste', 0); else selectCard('waste', 0);
+        }, sel));
+      } else {
+        const empty = document.createElement("div");
+        empty.style.cssText = "width:34px;height:48px;border:1px dashed #ccc;box-sizing:border-box;";
+        wasteWrap.appendChild(empty);
+      }
+      topRow.appendChild(wasteWrap);
+
+      const spacer = document.createElement("div");
+      spacer.style.flex = "1";
+      topRow.appendChild(spacer);
+
+      ['♠', '♥', '♦', '♣'].forEach(suit => {
+        const f = solitaire.foundations[suit];
+        const wrap = document.createElement("div");
+        if (f.length > 0) {
+          wrap.appendChild(renderCardEl(f[f.length - 1], true, () => tryMoveTo('foundation', suit), false));
+        } else {
+          const empty = document.createElement("div");
+          empty.style.cssText = "width:34px;height:48px;border:1px dashed #ccc; box-sizing:border-box; display:flex;align-items:center;justify-content:center;color:#ccc;font-size:16px;cursor:pointer;";
+          empty.innerText = suit;
+          empty.onclick = () => tryMoveTo('foundation', suit);
+          wrap.appendChild(empty);
+        }
+        topRow.appendChild(wrap);
+      });
+      container.appendChild(topRow);
+
+      const tableauRow = document.createElement("div");
+      tableauRow.style.cssText = "display:flex; gap:8px; flex:1;";
+      solitaire.tableau.forEach((pile, i) => {
+        const col = document.createElement("div");
+        col.style.cssText = "position:relative; width:34px; min-height:170px;";
+        if (pile.length === 0) {
+          const empty = document.createElement("div");
+          empty.style.cssText = "width:34px;height:48px;border:1px dashed #ccc; box-sizing:border-box; cursor:pointer;";
+          empty.onclick = () => tryMoveTo('tableau', i);
+          col.appendChild(empty);
+        } else {
+          pile.forEach((card, ci) => {
+            const isTop = ci === pile.length - 1;
+            const sel = !!(solitaire.selected && solitaire.selected.source === 'tableau' && solitaire.selected.pileIndex === i && isTop);
+            const el = renderCardEl(card, card.faceUp, () => {
+              if (isTop && card.faceUp) {
+                if (solitaire.selected) tryMoveTo('tableau', i); else selectCard('tableau', i);
+              } else if (solitaire.selected) {
+                tryMoveTo('tableau', i);
+              }
+            }, sel);
+            el.style.position = "absolute";
+            el.style.top = (ci * 16) + "px";
+            col.appendChild(el);
+          });
+        }
+        tableauRow.appendChild(col);
+      });
+      container.appendChild(tableauRow);
+
+      const controls = document.createElement("div");
+      const newGameBtn = document.createElement("button");
+      newGameBtn.innerText = "New Game";
+      newGameBtn.onclick = initSolitaire;
+      controls.appendChild(newGameBtn);
+      container.appendChild(controls);
+    }
     /* ----------------- End of Main Script ----------------- */
   </script>
 
